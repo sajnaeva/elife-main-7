@@ -7,6 +7,7 @@ import { BusinessFeed } from '@/components/feed/BusinessFeed';
 import { CommunityFeed } from '@/components/feed/CommunityFeed';
 import { DiscoverSidebar } from '@/components/feed/DiscoverSidebar';
 import { LocationPromptCard } from '@/components/feed/LocationPromptCard';
+import { PromotionalBanner } from '@/components/feed/PromotionalBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -133,6 +134,9 @@ export default function Home() {
 
           {/* Main Feed */}
           <div className="lg:col-span-6 space-y-6">
+            {/* Promotional Banners */}
+            <PromotionalBanner />
+            
             {/* Location Prompt for logged-in users */}
             {user && <LocationPromptCard />}
 

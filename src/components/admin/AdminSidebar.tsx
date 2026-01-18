@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  ShieldAlert
+  ShieldAlert,
+  Megaphone
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,7 @@ const sidebarLinks: SidebarLink[] = [
   { title: 'Users', href: '/admin/users', icon: Users },
   { title: 'Businesses', href: '/admin/businesses', icon: Building2 },
   { title: 'Posts', href: '/admin/posts', icon: FileText, requiredRole: 'content_moderator' },
+  { title: 'Promotions', href: '/admin/promotions', icon: Megaphone },
   { title: 'Communities', href: '/admin/communities', icon: Users2 },
   { title: 'Reports', href: '/admin/reports', icon: Flag, requiredRole: 'content_moderator' },
   { title: 'Word Monitor', href: '/admin/blocked-words', icon: ShieldAlert, requiredRole: 'content_moderator' },
