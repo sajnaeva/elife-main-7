@@ -53,29 +53,6 @@ export function CreatePostCard({ onPostCreated }: CreatePostCardProps) {
 
     setLoading(true);
     try {
-      // Ensure profile exists before creating post
-      const { data: existingProfile, error: profileCheckError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profileCheckError) {
-        console.error('Profile check error:', profileCheckError);
-      }
-
-      if (!existingProfile) {
-        // Create profile if it doesn't exist
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({ id: user.id }, { onConflict: 'id' });
-        
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          throw new Error('Please complete your profile setup first');
-        }
-      }
-
       let imageUrl = null;
 
       // Upload image if selected
@@ -96,15 +73,23 @@ export function CreatePostCard({ onPostCreated }: CreatePostCardProps) {
         imageUrl = urlData.publicUrl;
       }
 
-      // Create post
-      const { error } = await supabase.from('posts').insert({
-        user_id: user.id,
-        content: content.trim() || null,
-        image_url: imageUrl,
-        youtube_url: youtubeUrl || null,
+      // Create post via edge function (bypasses RLS since we use custom auth)
+      const response = await supabase.functions.invoke('create-post', {
+        body: {
+          user_id: user.id,
+          content: content.trim() || null,
+          image_url: imageUrl,
+          youtube_url: youtubeUrl || null,
+        },
       });
 
-      if (error) throw error;
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create post');
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
       // Reset form
       setContent('');
