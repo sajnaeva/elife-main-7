@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -111,17 +112,30 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName.trim() || null,
-          username: username.trim() || null,
-          bio: bio.trim() || null,
-          location: location.trim() || null,
-        })
-        .eq('id', user.id);
+      const updateSchema = z.object({
+        full_name: z.string().trim().max(100).nullable(),
+        username: z.string().trim().max(50).nullable(),
+        bio: z.string().trim().max(500).nullable(),
+        location: z.string().trim().max(200).nullable(),
+      });
+
+      const updatePayload = updateSchema.parse({
+        full_name: fullName.trim() || null,
+        username: username.trim() || null,
+        bio: bio.trim() || null,
+        location: location.trim() || null,
+      });
+
+      // Use edge function to update profile (bypasses RLS for custom auth)
+      const { data, error } = await supabase.functions.invoke('update-profile', {
+        body: {
+          user_id: user.id,
+          ...updatePayload,
+        },
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       await refreshProfile();
       toast({ title: 'Profile updated!' });
@@ -184,16 +198,28 @@ export default function Settings() {
   const handleSavePrivacy = async () => {
     setSavingPrivacy(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          show_email: showEmail,
-          show_mobile: showMobile,
-          show_location: showLocation,
-        })
-        .eq('id', user.id);
+      const privacySchema = z.object({
+        show_email: z.boolean(),
+        show_mobile: z.boolean(),
+        show_location: z.boolean(),
+      });
+
+      const privacyPayload = privacySchema.parse({
+        show_email: showEmail,
+        show_mobile: showMobile,
+        show_location: showLocation,
+      });
+
+      // Use edge function to update profile (bypasses RLS for custom auth)
+      const { data, error } = await supabase.functions.invoke('update-profile', {
+        body: {
+          user_id: user.id,
+          ...privacyPayload,
+        },
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       await refreshProfile();
       toast({ title: 'Privacy settings saved!' });
@@ -520,7 +546,7 @@ export default function Settings() {
               {saving ? 'Saving...' : hasUnsavedProfileChanges ? 'Save Changes *' : 'Save Changes'}
             </Button>
             {hasUnsavedProfileChanges && (
-              <p className="text-xs text-amber-600 mt-2">You have unsaved changes</p>
+              <p className="text-xs text-muted-foreground mt-2">You have unsaved changes</p>
             )}
           </CardContent>
         </Card>

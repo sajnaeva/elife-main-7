@@ -58,14 +58,26 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
 
   // Parse existing location value
   useEffect(() => {
-    if (value) {
-      const parts = value.split(',').map(s => s.trim());
-      // Format: Place, Panchayath, District, Country
-      if (parts.length >= 1) setPlace(parts[0] || '');
-      if (parts.length >= 2) setPanchayath(parts[1] || '');
-      if (parts.length >= 3) setDistrict(parts[2] || '');
-      if (parts.length >= 4) setCountry(parts[3] || 'India');
-    }
+    if (!value) return;
+
+    const parts = value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (parts.length === 0) return;
+
+    // Prefer detecting country by matching known countries to avoid "India, India" duplication
+    const last = parts[parts.length - 1];
+    const hasExplicitCountry = COUNTRIES.includes(last);
+
+    const nextCountry = hasExplicitCountry ? last : 'India';
+    const remaining = hasExplicitCountry ? parts.slice(0, -1) : parts;
+
+    setPlace(remaining[0] || '');
+    setPanchayath(remaining[1] || '');
+    setDistrict(remaining[2] || '');
+    setCountry(nextCountry);
   }, [value]);
 
   // Update parent when location changes
