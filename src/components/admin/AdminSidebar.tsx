@@ -18,8 +18,7 @@ import {
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuthSupabase } from '@/hooks/useAdminAuthSupabase';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -48,8 +47,7 @@ const sidebarLinks: SidebarLink[] = [
 ];
 
 export function AdminSidebar() {
-  const { isSuperAdmin, isContentModerator, isCategoryManager, roles } = useAdminAuth();
-  const { profile, signOut } = useAuth();
+  const { isSuperAdmin, isContentModerator, isCategoryManager, roles, user, signOut } = useAdminAuthSupabase();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -63,7 +61,7 @@ export function AdminSidebar() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate('/admin/login');
   };
 
   const filteredLinks = sidebarLinks.filter(canAccessLink);
@@ -131,15 +129,14 @@ export function AdminSidebar() {
             collapsed && "justify-center"
           )}>
             <Avatar className="h-9 w-9">
-              <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary/10 text-primary">
-                {profile?.full_name?.charAt(0) || 'A'}
+                {user?.email?.charAt(0).toUpperCase() || 'A'}
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {profile?.full_name || 'Admin'}
+                  {user?.email || 'Admin'}
                 </p>
                 <p className="text-xs text-muted-foreground capitalize">
                   {roles[0]?.replace('_', ' ') || 'Admin'}

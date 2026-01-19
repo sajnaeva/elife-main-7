@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAdminAuth, AdminRole } from '@/hooks/useAdminAuth';
+import { useAdminAuthSupabase, AdminRole } from '@/hooks/useAdminAuthSupabase';
 import { Loader2 } from 'lucide-react';
 
 interface AdminRouteProps {
@@ -8,7 +8,7 @@ interface AdminRouteProps {
 }
 
 export function AdminRoute({ children, requiredRole }: AdminRouteProps) {
-  const { isAdmin, roles, loading, isSuperAdmin } = useAdminAuth();
+  const { isAdmin, roles, loading, isSuperAdmin, user } = useAdminAuthSupabase();
 
   if (loading) {
     return (
@@ -18,10 +18,17 @@ export function AdminRoute({ children, requiredRole }: AdminRouteProps) {
     );
   }
 
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
+  // Redirect to admin login if not authenticated
+  if (!user) {
+    return <Navigate to="/admin/login" replace />;
   }
 
+  // Redirect to admin login if authenticated but not admin
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  // Redirect to admin dashboard if doesn't have required role
   if (requiredRole && !roles.includes(requiredRole) && !isSuperAdmin) {
     return <Navigate to="/admin" replace />;
   }

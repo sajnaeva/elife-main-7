@@ -21,6 +21,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 
 // Admin pages
 import { AdminRoute } from "./components/admin/AdminRoute";
+import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBusinesses from "./pages/admin/AdminBusinesses";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/verify-email" element={<VerifyEmail />} />
             
             {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin/businesses" element={<AdminRoute><AdminBusinesses /></AdminRoute>} />
