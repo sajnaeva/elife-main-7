@@ -702,6 +702,10 @@ export type Database = {
           blocked_by: string | null
           chat_disabled: boolean | null
           created_at: string | null
+          email: string | null
+          email_verification_sent_at: string | null
+          email_verification_token: string | null
+          email_verified: boolean | null
           full_name: string | null
           id: string
           is_blocked: boolean | null
@@ -721,6 +725,10 @@ export type Database = {
           blocked_by?: string | null
           chat_disabled?: boolean | null
           created_at?: string | null
+          email?: string | null
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           id: string
           is_blocked?: boolean | null
@@ -740,6 +748,10 @@ export type Database = {
           blocked_by?: string | null
           chat_disabled?: boolean | null
           created_at?: string | null
+          email?: string | null
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           id?: string
           is_blocked?: boolean | null
