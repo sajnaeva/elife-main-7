@@ -60,7 +60,7 @@ interface FollowedUser {
 export default function Messages() {
   const { conversationId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +80,21 @@ export default function Messages() {
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [deleteMessageDialogOpen, setDeleteMessageDialogOpen] = useState(false);
+
+  const isSessionError = (err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    return msg.includes('Invalid or expired session') || msg.includes('No session token');
+  };
+
+  const handleSessionExpired = useCallback(async () => {
+    toast({
+      title: 'Session expired',
+      description: 'Please sign in again.',
+      variant: 'destructive',
+    });
+    await signOut();
+    navigate('/auth', { replace: true });
+  }, [navigate, signOut, toast]);
 
   useEffect(() => {
     if (!user) {
@@ -175,7 +190,7 @@ export default function Messages() {
 
   const fetchConversations = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await getConversations();
@@ -184,7 +199,12 @@ export default function Messages() {
 
       setConversations(data?.conversations || []);
     } catch (error) {
+      if (isSessionError(error)) {
+        await handleSessionExpired();
+        return;
+      }
       console.error('Error fetching conversations:', error);
+      toast({ title: 'Error loading conversations', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -205,6 +225,10 @@ export default function Messages() {
       if (error) throw error;
       setMessages(data?.messages || []);
     } catch (error) {
+      if (isSessionError(error)) {
+        await handleSessionExpired();
+        return;
+      }
       console.error('Error fetching messages:', error);
     }
   };
@@ -224,11 +248,15 @@ export default function Messages() {
 
       // Add the new message to local state immediately for better UX
       if (data?.message) {
-        setMessages(prev => [...prev, data.message]);
+        setMessages((prev) => [...prev, data.message]);
       }
 
       setNewMessage('');
     } catch (error: unknown) {
+      if (isSessionError(error)) {
+        await handleSessionExpired();
+        return;
+      }
       console.error('Error sending message:', error);
       toast({ title: 'Error sending message', variant: 'destructive' });
     } finally {
@@ -260,6 +288,10 @@ export default function Messages() {
         navigate(`/messages/${data.conversation_id}`);
       }
     } catch (error) {
+      if (isSessionError(error)) {
+        await handleSessionExpired();
+        return;
+      }
       console.error('Error starting conversation:', error);
       toast({ title: 'Error starting chat', variant: 'destructive' });
     }
