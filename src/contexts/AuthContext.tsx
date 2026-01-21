@@ -68,8 +68,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (stored) {
           const { user: storedUser, session_token } = JSON.parse(stored);
           if (storedUser && session_token) {
-            setUser(storedUser);
-            await fetchProfile(storedUser.id);
+            // Validate session token against DB to avoid using stale localStorage sessions
+            const { data: validatedUserId, error: validateError } = await supabase
+              .rpc('validate_session', { p_session_token: session_token });
+
+            if (validateError || !validatedUserId) {
+              console.warn('Stored session token is invalid/expired. Clearing local session.');
+              localStorage.removeItem(STORAGE_KEY);
+            } else {
+              // If DB returns a different user id, prefer the DB truth
+              const userId = String(validatedUserId);
+              setUser({ ...storedUser, id: userId });
+              await fetchProfile(userId);
+            }
           }
         }
       } catch (error) {
