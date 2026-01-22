@@ -15,7 +15,7 @@ const NotFound = () => {
         <img 
           src={logoImg} 
           alt="സംരംഭക.com Logo" 
-          className="h-24 w-auto rounded-2xl mx-auto mb-6 shadow-glow opacity-60"
+          className="h-24 w-auto rounded-2xl mx-auto mb-6 shadow-glow opacity-60 transition-all duration-500 hover:opacity-100 hover:scale-110 hover:rotate-6 cursor-pointer"
         />
         <h1 className="mb-2 text-6xl font-bold text-primary">404</h1>
         <p className="mb-6 text-xl text-muted-foreground">Oops! Page not found</p>

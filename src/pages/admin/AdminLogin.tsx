@@ -124,7 +124,7 @@ export default function AdminLogin() {
             <img 
               src={logoImg} 
               alt="സംരംഭക.com Logo" 
-              className="h-20 w-auto rounded-2xl shadow-glow"
+              className="h-20 w-auto rounded-2xl shadow-glow transition-all duration-300 hover:scale-110 hover:rotate-3 cursor-pointer"
             />
             <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg">
               <Shield className="h-4 w-4 text-primary-foreground" />

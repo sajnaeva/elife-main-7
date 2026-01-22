@@ -60,7 +60,7 @@ export function Navbar() {
             <img 
               src={logoImg} 
               alt="സംരംഭക.com Logo" 
-              className="h-9 w-auto rounded-lg"
+              className="h-9 w-auto rounded-lg transition-all duration-300 hover:scale-110 hover:rotate-3 hover:shadow-lg"
             />
             <span className="font-bold text-sm sm:text-lg">
               <span className="text-primary">സംരംഭക</span>

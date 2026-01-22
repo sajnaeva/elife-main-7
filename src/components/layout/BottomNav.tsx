@@ -40,7 +40,7 @@ export function BottomNav() {
                   src={logoImg} 
                   alt="Home" 
                   className={cn(
-                    'h-6 w-6 rounded-md object-cover',
+                    'h-6 w-6 rounded-md object-cover transition-all duration-300 hover:scale-125 hover:rotate-6',
                     isActive && 'ring-2 ring-primary ring-offset-1 ring-offset-background'
                   )}
                 />
