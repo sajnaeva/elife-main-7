@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { MapPin, Loader2, Navigation } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { PanchayathLocationPicker } from '@/components/settings/PanchayathLocationPicker';
 
 interface LocationPopupProps {
@@ -136,34 +136,6 @@ export function LocationPopup({ open, onOpenChange, onLocationSet }: LocationPop
         </DialogHeader>
 
         <div className="space-y-4 pt-4">
-          {/* Auto-detect button */}
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleGetLocation}
-            disabled={fetchingLocation}
-          >
-            {fetchingLocation ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Detecting location...
-              </>
-            ) : (
-              <>
-                <Navigation className="mr-2 h-4 w-4" />
-                Use my current location
-              </>
-            )}
-          </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or enter manually</span>
-            </div>
-          </div>
 
           {/* Manual location picker */}
           <div className="space-y-2">

@@ -56,9 +56,12 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
   const [panchayath, setPanchayath] = useState('');
   const [place, setPlace] = useState('');
 
-  // Parse existing location value
+  // Parse existing location value - only run once on mount
+  const hasInitialized = useRef(false);
+  
   useEffect(() => {
-    if (!value) return;
+    if (!value || hasInitialized.current) return;
+    hasInitialized.current = true;
 
     const parts = value
       .split(',')
@@ -74,9 +77,29 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
     const nextCountry = hasExplicitCountry ? last : 'India';
     const remaining = hasExplicitCountry ? parts.slice(0, -1) : parts;
 
-    setPlace(remaining[0] || '');
-    setPanchayath(remaining[1] || '');
-    setDistrict(remaining[2] || '');
+    // Check if any part matches a district to properly identify it
+    const districtIndex = remaining.findIndex(p => KERALA_DISTRICTS.includes(p));
+    
+    if (districtIndex !== -1) {
+      // We found a district, parse accordingly
+      setDistrict(remaining[districtIndex]);
+      // Everything before district is place/panchayath
+      if (districtIndex >= 2) {
+        setPlace(remaining[0] || '');
+        setPanchayath(remaining.slice(1, districtIndex).join(', ') || '');
+      } else if (districtIndex === 1) {
+        setPlace(remaining[0] || '');
+        setPanchayath('');
+      } else {
+        setPlace('');
+        setPanchayath('');
+      }
+    } else {
+      // No district found, use positional parsing
+      setPlace(remaining[0] || '');
+      setPanchayath(remaining[1] || '');
+      setDistrict(remaining[2] || '');
+    }
     setCountry(nextCountry);
   }, [value]);
 
