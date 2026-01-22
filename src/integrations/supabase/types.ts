@@ -1184,6 +1184,63 @@ export type Database = {
           },
         ]
       }
+      questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          id: string
+          options: Json
+          question_text: string
+          updated_at: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          id?: string
+          options?: Json
+          question_text: string
+          updated_at?: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          options?: Json
+          question_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_admins: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           action_taken: string | null
@@ -1236,6 +1293,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      submissions: {
+        Row: {
+          answers: Json | null
+          created_at: string
+          id: string
+          mobile: string
+          name: string
+          panchayath: string
+          reference_id: string | null
+          score: number
+        }
+        Insert: {
+          answers?: Json | null
+          created_at?: string
+          id?: string
+          mobile: string
+          name: string
+          panchayath: string
+          reference_id?: string | null
+          score?: number
+        }
+        Update: {
+          answers?: Json | null
+          created_at?: string
+          id?: string
+          mobile?: string
+          name?: string
+          panchayath?: string
+          reference_id?: string | null
+          score?: number
+        }
+        Relationships: []
       }
       user_credentials: {
         Row: {
