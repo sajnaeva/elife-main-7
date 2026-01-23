@@ -114,7 +114,7 @@ export default function Messages() {
     scrollToBottom();
   }, [messages]);
 
-  // Real-time subscription
+  // Real-time subscription for current conversation messages
   useEffect(() => {
     if (!selectedConversation) return;
 
@@ -130,12 +130,29 @@ export default function Messages() {
         },
         (payload) => {
           const newMsg = payload.new as Message;
-          setMessages((prev) => [...prev, newMsg]);
+          // Avoid duplicates (in case we already added it optimistically)
+          setMessages((prev) => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
           
           // Mark as read if not sender
           if (newMsg.sender_id !== user?.id && selectedConversation) {
             markAsRead(selectedConversation.id);
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${selectedConversation.id}`,
+        },
+        (payload) => {
+          const deletedMsg = payload.old as { id: string };
+          setMessages((prev) => prev.filter(m => m.id !== deletedMsg.id));
         }
       )
       .subscribe();
@@ -144,6 +161,45 @@ export default function Messages() {
       supabase.removeChannel(channel);
     };
   }, [selectedConversation, user]);
+
+  // Real-time subscription for conversations list updates
+  useEffect(() => {
+    if (!user) return;
+
+    const conversationsChannel = supabase
+      .channel('conversations-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+        },
+        (payload) => {
+          // Refresh conversations when any change happens
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+            fetchConversations();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          // When a new message is inserted anywhere, refresh conversations to update last_message
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(conversationsChannel);
+    };
+  }, [user]);
 
   // Fetch people you follow when opening the New Chat dialog
   const fetchFollowedUsers = useCallback(async () => {
