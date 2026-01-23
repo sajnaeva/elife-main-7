@@ -191,10 +191,27 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || 'Failed to report post');
+        const errorMessage = response.error.message || 'Failed to report post';
+        // Check if this is a "already reported" message
+        if (errorMessage.includes('already reported')) {
+          toast({ title: 'Already reported', description: 'You have already reported this post.', variant: 'default' });
+          setShowReportDialog(false);
+          setReportReason('');
+          setReportDescription('');
+          return;
+        }
+        throw new Error(errorMessage);
       }
 
       if (response.data?.error) {
+        // Check if this is a "already reported" message
+        if (response.data.error.includes('already reported')) {
+          toast({ title: 'Already reported', description: 'You have already reported this post.', variant: 'default' });
+          setShowReportDialog(false);
+          setReportReason('');
+          setReportDescription('');
+          return;
+        }
         throw new Error(response.data.error);
       }
 
@@ -205,7 +222,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
       onUpdate();
     } catch (error: any) {
       console.error('Error reporting post:', error);
-      toast({ title: 'Failed to report', description: error.message, variant: 'destructive' });
+      toast({ title: 'Failed to report', description: error.message || 'An unexpected error occurred', variant: 'destructive' });
     } finally {
       setIsReporting(false);
     }
