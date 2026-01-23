@@ -27,12 +27,14 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Verify user is an admin by checking user_roles table
-    const { data: adminRole, error: roleError } = await supabase
+    // Verify user is an admin by checking user_roles table.
+    // NOTE: Do not fall back to checking profiles.role (roles must live in user_roles).
+    // Also avoid maybeSingle() because a user can have multiple admin roles.
+    const { data: adminRoles, error: roleError } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user_id)
-      .maybeSingle();
+      .limit(1);
 
     if (roleError) {
       console.error("Role check error:", roleError);
@@ -42,20 +44,12 @@ serve(async (req) => {
       );
     }
 
-    if (!adminRole) {
-      // Also check profiles.role as fallback
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user_id)
-        .single();
-
-      if (profileError || profile?.role !== 'admin') {
-        return new Response(
-          JSON.stringify({ error: "Unauthorized: Admin access required" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    const isAdmin = Array.isArray(adminRoles) && adminRoles.length > 0;
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Perform the requested action
@@ -91,6 +85,47 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (action === "delete") {
+      // Cleanup related rows first to avoid FK constraint errors
+      const { error: likesError } = await supabase
+        .from("post_likes")
+        .delete()
+        .eq("post_id", post_id);
+
+      if (likesError) {
+        console.error("Delete post likes error:", likesError);
+        return new Response(
+          JSON.stringify({ error: likesError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error: commentsError } = await supabase
+        .from("comments")
+        .delete()
+        .eq("post_id", post_id);
+
+      if (commentsError) {
+        console.error("Delete post comments error:", commentsError);
+        return new Response(
+          JSON.stringify({ error: commentsError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error: reportsError } = await supabase
+        .from("reports")
+        .delete()
+        .eq("reported_id", post_id)
+        .eq("reported_type", "post");
+
+      if (reportsError) {
+        console.error("Delete post reports error:", reportsError);
+        return new Response(
+          JSON.stringify({ error: reportsError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const { error: deleteError } = await supabase
         .from("posts")
         .delete()
