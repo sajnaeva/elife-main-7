@@ -51,7 +51,7 @@ serve(async (req) => {
       );
     }
 
-    // Create the business
+    // Create the business with pending approval status
     const { data: business, error: businessError } = await supabase
       .from("businesses")
       .insert({
@@ -65,6 +65,7 @@ serve(async (req) => {
         website_url: website_url || null,
         instagram_link: instagram_link || null,
         youtube_link: youtube_link || null,
+        approval_status: 'pending', // Require admin approval
       })
       .select()
       .single();

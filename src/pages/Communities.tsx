@@ -19,7 +19,8 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Users, UserPlus, UserMinus, Crown, Edit, Trash2 } from 'lucide-react';
+import { Plus, Users, UserPlus, UserMinus, Crown, Edit, Trash2, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Community {
   id: string;
@@ -27,6 +28,7 @@ interface Community {
   description: string | null;
   cover_image_url: string | null;
   created_by: string | null;
+  approval_status: string | null;
   member_count: number;
   is_member: boolean;
   is_creator: boolean;
@@ -128,7 +130,7 @@ export default function Communities() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: 'Community created successfully!' });
+      toast({ title: 'Community created! It will be visible after admin approval.' });
       setDialogOpen(false);
       setName('');
       setDescription('');
@@ -514,12 +516,25 @@ function CommunityCard({
             </AvatarFallback>
           </Avatar>
           
-          {community.is_creator && (
-            <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
-              <Crown className="h-3 w-3" />
-              Creator
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {community.is_creator && (
+              <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
+                <Crown className="h-3 w-3" />
+                Creator
+              </div>
+            )}
+            {community.approval_status === 'pending' && (
+              <Badge variant="outline" className="text-orange-600 border-orange-600 text-xs">
+                <Clock className="h-3 w-3 mr-1" />
+                Pending
+              </Badge>
+            )}
+            {community.approval_status === 'rejected' && (
+              <Badge variant="destructive" className="text-xs">
+                Rejected
+              </Badge>
+            )}
+          </div>
         </div>
         
         <h3 className="font-semibold text-lg text-foreground truncate">

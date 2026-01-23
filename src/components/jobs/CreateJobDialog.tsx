@@ -69,6 +69,7 @@ export function CreateJobDialog({ onJobCreated, trigger }: CreateJobDialogProps)
         location: string | null;
         max_applications: number | null;
         expires_at: string | null;
+        approval_status: string;
       } = {
         creator_id: user.id,
         title: title.trim(),
@@ -77,6 +78,7 @@ export function CreateJobDialog({ onJobCreated, trigger }: CreateJobDialogProps)
         location: location.trim() || null,
         max_applications: null,
         expires_at: null,
+        approval_status: 'pending', // Require admin approval
       };
 
       if (useCountExpiry && maxApplications) {
@@ -93,7 +95,7 @@ export function CreateJobDialog({ onJobCreated, trigger }: CreateJobDialogProps)
 
       if (error) throw error;
 
-      toast.success('Job created successfully!');
+      toast.success('Job created! It will be visible after admin approval.');
       resetForm();
       setOpen(false);
       onJobCreated?.();

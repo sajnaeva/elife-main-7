@@ -15,7 +15,8 @@ import {
   LogOut,
   ShieldAlert,
   Megaphone,
-  UserX
+  UserX,
+  Briefcase
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ const sidebarLinks: SidebarLink[] = [
   { title: 'Deletion Requests', href: '/admin/deletion-requests', icon: UserX },
   { title: 'Businesses', href: '/admin/businesses', icon: Building2 },
   { title: 'Posts', href: '/admin/posts', icon: FileText, requiredRole: 'content_moderator' },
+  { title: 'Jobs', href: '/admin/jobs', icon: Briefcase },
   { title: 'Promotions', href: '/admin/promotions', icon: Megaphone },
   { title: 'Communities', href: '/admin/communities', icon: Users2 },
   { title: 'Reports', href: '/admin/reports', icon: Flag, requiredRole: 'content_moderator' },

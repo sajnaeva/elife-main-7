@@ -38,6 +38,7 @@ interface Business {
   category: BusinessCategory;
   logo_url: string | null;
   location: string | null;
+  approval_status: string | null;
   follower_count?: number;
 }
 
@@ -87,7 +88,7 @@ export default function MyBusinesses() {
     try {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, description, category, logo_url, location')
+        .select('id, name, description, category, logo_url, location, approval_status')
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -144,7 +145,7 @@ export default function MyBusinesses() {
         throw new Error(response.data.error);
       }
 
-      toast({ title: 'Business created successfully!' });
+      toast({ title: 'Business created! It will be visible after admin approval.' });
       setDialogOpen(false);
       resetForm();
       fetchBusinesses();
@@ -364,9 +365,21 @@ export default function MyBusinesses() {
                         <h3 className="font-semibold text-lg text-foreground truncate">
                           {business.name}
                         </h3>
-                        <Badge variant="secondary" className="mt-1">
-                          {catInfo.icon} {catInfo.label}
-                        </Badge>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">
+                            {catInfo.icon} {catInfo.label}
+                          </Badge>
+                          {business.approval_status === 'pending' && (
+                            <Badge variant="outline" className="text-orange-600 border-orange-600">
+                              Pending Approval
+                            </Badge>
+                          )}
+                          {business.approval_status === 'rejected' && (
+                            <Badge variant="destructive">
+                              Rejected
+                            </Badge>
+                          )}
+                        </div>
                         
                         <div className="flex flex-wrap gap-3 mt-3 text-sm text-muted-foreground">
                           {business.location && (

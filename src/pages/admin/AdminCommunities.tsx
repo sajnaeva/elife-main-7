@@ -23,7 +23,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { MoreHorizontal, Ban, Eye, Users, Archive } from 'lucide-react';
+import { MoreHorizontal, Ban, Eye, Users, Archive, CheckCircle, XCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -33,6 +33,7 @@ interface Community {
   description: string | null;
   cover_image_url: string | null;
   is_disabled: boolean | null;
+  approval_status: string | null;
   created_at: string | null;
   created_by: string | null;
   creator?: {
@@ -46,7 +47,7 @@ export default function AdminCommunities() {
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
-  const [actionDialog, setActionDialog] = useState<'disable' | null>(null);
+  const [actionDialog, setActionDialog] = useState<'disable' | 'reject' | null>(null);
   const [actionReason, setActionReason] = useState('');
 
   const { data: communities = [], isLoading } = useQuery({
@@ -111,6 +112,51 @@ export default function AdminCommunities() {
     },
   });
 
+  const approvalMutation = useMutation({
+    mutationFn: async ({ communityId, status }: { communityId: string; status: 'approved' | 'rejected' }) => {
+      const { error } = await supabase
+        .from('communities')
+        .update({ 
+          approval_status: status,
+          disabled_reason: status === 'rejected' ? actionReason : null,
+        })
+        .eq('id', communityId);
+
+      if (error) throw error;
+
+      await supabase.from('admin_activity_logs').insert({
+        admin_id: currentUser?.id,
+        action: `${status.charAt(0).toUpperCase() + status.slice(1)} community`,
+        target_type: 'community',
+        target_id: communityId,
+        details: { reason: status === 'rejected' ? actionReason : undefined },
+      });
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-communities'] });
+      toast.success(`Community ${status} successfully`);
+      setActionDialog(null);
+      setSelectedCommunity(null);
+      setActionReason('');
+    },
+    onError: (error) => {
+      toast.error('Failed to update community: ' + error.message);
+    },
+  });
+
+  const getStatusBadge = (community: Community) => {
+    if (community.is_disabled) {
+      return <Badge variant="destructive">Disabled</Badge>;
+    }
+    if (community.approval_status === 'pending') {
+      return <Badge variant="outline" className="text-orange-600 border-orange-600">Pending</Badge>;
+    }
+    if (community.approval_status === 'rejected') {
+      return <Badge variant="destructive">Rejected</Badge>;
+    }
+    return <Badge className="bg-green-500">Active</Badge>;
+  };
+
   const columns: Column<Community>[] = [
     {
       key: 'name',
@@ -146,13 +192,7 @@ export default function AdminCommunities() {
     {
       key: 'status',
       header: 'Status',
-      render: (community) => (
-        community.is_disabled ? (
-          <Badge variant="destructive">Disabled</Badge>
-        ) : (
-          <Badge className="bg-green-500">Active</Badge>
-        )
-      ),
+      render: (community) => getStatusBadge(community),
     },
     {
       key: 'created_at',
@@ -181,6 +221,31 @@ export default function AdminCommunities() {
               View Community
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            {community.approval_status === 'pending' && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => approvalMutation.mutate({ 
+                    communityId: community.id, 
+                    status: 'approved' 
+                  })}
+                  className="text-green-600"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedCommunity(community);
+                    setActionDialog('reject');
+                  }}
+                  className="text-destructive"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem
               onClick={() => {
                 setSelectedCommunity(community);
@@ -223,6 +288,7 @@ export default function AdminCommunities() {
             label: 'Status',
             options: [
               { value: 'active', label: 'Active' },
+              { value: 'pending', label: 'Pending' },
               { value: 'disabled', label: 'Disabled' },
             ],
           },
@@ -272,6 +338,48 @@ export default function AdminCommunities() {
               disabled={disableMutation.isPending}
             >
               {selectedCommunity?.is_disabled ? 'Enable' : 'Disable'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <Dialog open={actionDialog === 'reject'} onOpenChange={() => setActionDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Community</DialogTitle>
+            <DialogDescription>
+              This will reject the community application.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Community</Label>
+              <p className="text-sm text-muted-foreground">{selectedCommunity?.name}</p>
+            </div>
+            <div>
+              <Label htmlFor="reject-reason">Reason for Rejection</Label>
+              <Textarea
+                id="reject-reason"
+                placeholder="Enter reason for rejection..."
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActionDialog(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => selectedCommunity && approvalMutation.mutate({ 
+                communityId: selectedCommunity.id, 
+                status: 'rejected'
+              })}
+              disabled={approvalMutation.isPending || !actionReason.trim()}
+            >
+              Reject
             </Button>
           </DialogFooter>
         </DialogContent>

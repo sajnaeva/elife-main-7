@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Create the community
+      // Create the community with pending approval status
       const { data: community, error: createError } = await supabase
         .from("communities")
         .insert({
@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
           description: description?.trim() || null,
           cover_image_url: cover_image_url || null,
           created_by: userId,
+          approval_status: 'pending', // Require admin approval
         })
         .select()
         .single();

@@ -281,6 +281,7 @@ export type Database = {
       }
       communities: {
         Row: {
+          approval_status: string | null
           business_id: string | null
           cover_image_url: string | null
           created_at: string | null
@@ -294,6 +295,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          approval_status?: string | null
           business_id?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -307,6 +309,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          approval_status?: string | null
           business_id?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -724,6 +727,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          approval_status: string | null
           conditions: string | null
           created_at: string | null
           creator_id: string
@@ -737,6 +741,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          approval_status?: string | null
           conditions?: string | null
           created_at?: string | null
           creator_id: string
@@ -750,6 +755,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          approval_status?: string | null
           conditions?: string | null
           created_at?: string | null
           creator_id?: string
