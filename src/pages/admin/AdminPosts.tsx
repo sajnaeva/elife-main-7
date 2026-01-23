@@ -84,24 +84,17 @@ export default function AdminPosts() {
 
   const hideMutation = useMutation({
     mutationFn: async ({ postId, hide }: { postId: string; hide: boolean }) => {
-      const { error } = await supabase
-        .from('posts')
-        .update({ 
-          is_hidden: hide,
-          hidden_at: hide ? new Date().toISOString() : null,
-          hidden_reason: hide ? actionReason : null,
-        })
-        .eq('id', postId);
-
-      if (error) throw error;
-
-      await supabase.from('admin_activity_logs').insert({
-        admin_id: currentUser?.id,
-        action: hide ? 'Hidden post' : 'Unhidden post',
-        target_type: 'post',
-        target_id: postId,
-        details: { reason: actionReason },
+      const response = await supabase.functions.invoke('admin-post-actions', {
+        body: {
+          action: hide ? 'hide' : 'unhide',
+          post_id: postId,
+          user_id: currentUser?.id,
+          reason: actionReason,
+        },
       });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
     },
     onSuccess: (_, { hide }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
@@ -117,65 +110,17 @@ export default function AdminPosts() {
 
   const deleteMutation = useMutation({
     mutationFn: async (postId: string) => {
-      console.log('Attempting to delete post:', postId);
-      console.log('Current user:', currentUser?.id);
-      
-      // First, delete related records (comments and likes)
-      const { error: likesError } = await supabase
-        .from('post_likes')
-        .delete()
-        .eq('post_id', postId);
-      
-      if (likesError) {
-        console.error('Error deleting post likes:', likesError);
-      }
-
-      const { error: commentsError } = await supabase
-        .from('comments')
-        .delete()
-        .eq('post_id', postId);
-      
-      if (commentsError) {
-        console.error('Error deleting post comments:', commentsError);
-      }
-
-      // Delete reports related to this post
-      const { error: reportsError } = await supabase
-        .from('reports')
-        .delete()
-        .eq('reported_id', postId)
-        .eq('reported_type', 'post');
-      
-      if (reportsError) {
-        console.error('Error deleting post reports:', reportsError);
-      }
-
-      // Now delete the post
-      const { data, error, count } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId)
-        .select();
-
-      console.log('Delete result:', { data, error, count });
-
-      if (error) {
-        console.error('Error deleting post:', error);
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        console.error('Post deletion returned no data - RLS may have blocked the delete');
-        throw new Error('Unable to delete post. You may not have permission.');
-      }
-
-      await supabase.from('admin_activity_logs').insert({
-        admin_id: currentUser?.id,
-        action: 'Deleted post',
-        target_type: 'post',
-        target_id: postId,
-        details: { reason: actionReason },
+      const response = await supabase.functions.invoke('admin-post-actions', {
+        body: {
+          action: 'delete',
+          post_id: postId,
+          user_id: currentUser?.id,
+          reason: actionReason,
+        },
       });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
