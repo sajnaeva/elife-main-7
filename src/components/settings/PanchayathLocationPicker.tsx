@@ -83,6 +83,7 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
   const [district, setDistrict] = useState('Malappuram');
   const [panchayath, setPanchayath] = useState('');
   const [place, setPlace] = useState('');
+  const [useCustomInput, setUseCustomInput] = useState(false);
 
   // Parse existing location value - only run once on mount
   const hasInitialized = useRef(false);
@@ -114,7 +115,13 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
       // Everything before district is place/panchayath
       if (districtIndex >= 2) {
         setPlace(remaining[0] || '');
-        setPanchayath(remaining.slice(1, districtIndex).join(', ') || '');
+        const parsedPanchayath = remaining.slice(1, districtIndex).join(', ') || '';
+        setPanchayath(parsedPanchayath);
+        // Check if panchayath is in suggestions list
+        const suggestions = COMMON_PANCHAYATHS[remaining[districtIndex]] || [];
+        if (parsedPanchayath && !suggestions.includes(parsedPanchayath)) {
+          setUseCustomInput(true);
+        }
       } else if (districtIndex === 1) {
         setPlace(remaining[0] || '');
         setPanchayath('');
@@ -145,6 +152,9 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
 
   // Get suggestions for panchayath based on selected district
   const panchayathSuggestions = district ? COMMON_PANCHAYATHS[district] || [] : [];
+  
+  // Determine if we should show dropdown or input
+  const showDropdown = panchayathSuggestions.length > 0 && !useCustomInput;
 
   return (
     <div className="space-y-4">
@@ -192,8 +202,7 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
         <Label>Panchayath / Municipality</Label>
         {panchayathSuggestions.length > 0 ? (
           <div className="space-y-2">
-            {/* Check if current value is in the list or empty - show dropdown */}
-            {(!panchayath || panchayathSuggestions.includes(panchayath)) ? (
+            {showDropdown ? (
               <>
                 <Select value={panchayath} onValueChange={setPanchayath}>
                   <SelectTrigger>
@@ -212,7 +221,10 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
                   <button
                     type="button"
                     className="text-primary hover:underline"
-                    onClick={() => setPanchayath('_custom_')}
+                    onClick={() => {
+                      setUseCustomInput(true);
+                      setPanchayath('');
+                    }}
                   >
                     Type manually
                   </button>
@@ -222,14 +234,17 @@ export function PanchayathLocationPicker({ value, onChange }: LocationPickerProp
               <>
                 <Input
                   placeholder="Type panchayath name"
-                  value={panchayath === '_custom_' ? '' : panchayath}
+                  value={panchayath}
                   onChange={(e) => setPanchayath(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
                   <button
                     type="button"
                     className="text-primary hover:underline"
-                    onClick={() => setPanchayath('')}
+                    onClick={() => {
+                      setUseCustomInput(false);
+                      setPanchayath('');
+                    }}
                   >
                     Select from list
                   </button>
