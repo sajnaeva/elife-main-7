@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { DataTable } from '@/components/admin/DataTable';
 import { Button } from '@/components/ui/button';
@@ -48,25 +48,29 @@ export default function AdminBlockedWords() {
   const [selectedWord, setSelectedWord] = useState<BlockedWord | null>(null);
   const [editWord, setEditWord] = useState('');
 
-  const getSessionToken = () => localStorage.getItem('admin_session_token');
+  const sessionToken = useMemo(() => localStorage.getItem('admin_session_token'), []);
 
   const { data: blockedWords, isLoading } = useQuery({
-    queryKey: ['blocked-words'],
+    queryKey: ['blocked-words', sessionToken],
     queryFn: async () => {
+      if (!sessionToken) {
+        throw new Error('No session token');
+      }
       const { data, error } = await supabase.functions.invoke('manage-blocked-words', {
-        body: { action: 'list', session_token: getSessionToken() },
+        body: { action: 'list', session_token: sessionToken },
       });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data.data as BlockedWord[];
     },
+    enabled: !!sessionToken,
   });
 
   const addWordMutation = useMutation({
     mutationFn: async (words: string[]) => {
       const { data, error } = await supabase.functions.invoke('manage-blocked-words', {
-        body: { action: 'add', session_token: getSessionToken(), words },
+        body: { action: 'add', session_token: sessionToken, words },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -90,7 +94,7 @@ export default function AdminBlockedWords() {
   const updateWordMutation = useMutation({
     mutationFn: async ({ id, word, is_active }: { id: string; word?: string; is_active?: boolean }) => {
       const { data, error } = await supabase.functions.invoke('manage-blocked-words', {
-        body: { action: 'update', session_token: getSessionToken(), id, word, is_active },
+        body: { action: 'update', session_token: sessionToken, id, word, is_active },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -109,7 +113,7 @@ export default function AdminBlockedWords() {
   const deleteWordMutation = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase.functions.invoke('manage-blocked-words', {
-        body: { action: 'delete', session_token: getSessionToken(), id },
+        body: { action: 'delete', session_token: sessionToken, id },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
