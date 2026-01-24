@@ -293,11 +293,9 @@ serve(async (req) => {
       // Generate session token and store in database
       const sessionToken = generateSessionToken();
       
-      // Invalidate old sessions for this user
-      await supabase
-        .from("user_sessions")
-        .update({ is_active: false })
-        .eq("user_id", credentials.id);
+      // NOTE: We intentionally do NOT invalidate old sessions here.
+      // Previous behavior logged users out of other tabs/devices (including the admin panel)
+      // which caused intermittent 401 "Invalid or expired session" errors.
 
       // Create new session
       const { error: sessionError } = await supabase
