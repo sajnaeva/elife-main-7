@@ -58,44 +58,53 @@ export default function Communities() {
   const fetchCommunities = async () => {
     setLoading(true);
     try {
-      // Fetch all communities
-      const { data: communitiesData, error } = await supabase
-        .from('communities')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Use edge function to fetch communities (bypasses RLS, shows pending to creator)
+      const stored = localStorage.getItem('samrambhak_auth');
+      const sessionToken = stored ? JSON.parse(stored).session_token : null;
+      
+      if (sessionToken) {
+        // Authenticated: use edge function to get all communities including pending for creator
+        const { data, error } = await supabase.functions.invoke('manage-community', {
+          body: { action: 'list' },
+          headers: { 'x-session-token': sessionToken },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
 
-      // Get member counts and membership status
-      const enrichedCommunities = await Promise.all(
-        (communitiesData || []).map(async (community) => {
-          const { count } = await supabase
-            .from('community_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('community_id', community.id);
+        const enrichedCommunities = data.communities || [];
+        setCommunities(enrichedCommunities);
+        setMyCommunities(enrichedCommunities.filter((c: Community) => c.is_member || c.is_creator));
+      } else {
+        // Unauthenticated: fetch only approved communities via direct query
+        const { data: communitiesData, error } = await supabase
+          .from('communities')
+          .select('*')
+          .eq('approval_status', 'approved')
+          .eq('is_disabled', false)
+          .order('created_at', { ascending: false });
 
-          let is_member = false;
-          if (user) {
-            const { data: memberCheck } = await supabase
+        if (error) throw error;
+
+        const enrichedCommunities = await Promise.all(
+          (communitiesData || []).map(async (community) => {
+            const { count } = await supabase
               .from('community_members')
-              .select('id')
-              .eq('community_id', community.id)
-              .eq('user_id', user.id)
-              .single();
-            is_member = !!memberCheck;
-          }
+              .select('*', { count: 'exact', head: true })
+              .eq('community_id', community.id);
 
-          return {
-            ...community,
-            member_count: count || 0,
-            is_member,
-            is_creator: community.created_by === user?.id,
-          };
-        })
-      );
+            return {
+              ...community,
+              member_count: count || 0,
+              is_member: false,
+              is_creator: false,
+            };
+          })
+        );
 
-      setCommunities(enrichedCommunities);
-      setMyCommunities(enrichedCommunities.filter(c => c.is_member || c.is_creator));
+        setCommunities(enrichedCommunities);
+        setMyCommunities([]);
+      }
     } catch (error) {
       console.error('Error fetching communities:', error);
     } finally {

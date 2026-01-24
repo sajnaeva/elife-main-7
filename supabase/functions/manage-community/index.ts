@@ -46,6 +46,60 @@ Deno.serve(async (req) => {
 
     const { action, community_id, name, description, cover_image_url, discussion_id, member_user_id, target_user_id, permission } = await req.json();
 
+    // LIST communities (including pending ones for the creator)
+    if (action === "list") {
+      // Fetch all communities - approved ones for everyone, plus pending/rejected for creators
+      const { data: allCommunities, error: listError } = await supabase
+        .from("communities")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (listError) {
+        console.error("List communities error:", listError);
+        return new Response(
+          JSON.stringify({ error: listError.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Filter: show approved & not disabled to everyone, show all statuses to creator
+      const filteredCommunities = (allCommunities || []).filter(c => {
+        // Creator can see all their communities regardless of status
+        if (c.created_by === userId) return true;
+        // Others can only see approved and not disabled
+        return c.approval_status === 'approved' && !c.is_disabled;
+      });
+
+      // Enrich with member count and membership status
+      const enrichedCommunities = await Promise.all(
+        filteredCommunities.map(async (community) => {
+          const { count } = await supabase
+            .from("community_members")
+            .select("*", { count: "exact", head: true })
+            .eq("community_id", community.id);
+
+          const { data: memberCheck } = await supabase
+            .from("community_members")
+            .select("id")
+            .eq("community_id", community.id)
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          return {
+            ...community,
+            member_count: count || 0,
+            is_member: !!memberCheck,
+            is_creator: community.created_by === userId,
+          };
+        })
+      );
+
+      return new Response(
+        JSON.stringify({ success: true, communities: enrichedCommunities }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // CREATE community
     if (action === "create") {
       if (!name?.trim()) {
