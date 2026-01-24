@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Users, UserPlus, UserMinus, Crown } from 'lucide-react';
+import { Users, UserPlus, UserMinus, Crown, Clock } from 'lucide-react';
 
 interface Community {
   id: string;
@@ -18,6 +19,7 @@ interface Community {
   member_count: number;
   is_member: boolean;
   is_creator: boolean;
+  approval_status: string | null;
 }
 
 export function CommunityFeed() {
@@ -66,6 +68,7 @@ export function CommunityFeed() {
             member_count: count || 0,
             is_member,
             is_creator: community.created_by === user?.id,
+            approval_status: community.approval_status,
           };
         })
       );
@@ -189,7 +192,7 @@ export function CommunityFeed() {
                     className="cursor-pointer flex-1"
                     onClick={() => navigate(`/communities/${community.id}`)}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-lg text-foreground truncate hover:text-primary transition-colors">
                         {community.name}
                       </h3>
@@ -198,6 +201,17 @@ export function CommunityFeed() {
                           <Crown className="h-3 w-3" />
                           Creator
                         </div>
+                      )}
+                      {community.is_creator && community.approval_status === 'pending' && (
+                        <Badge variant="outline" className="text-orange-600 border-orange-600">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Pending Approval
+                        </Badge>
+                      )}
+                      {community.is_creator && community.approval_status === 'rejected' && (
+                        <Badge variant="destructive">
+                          Rejected
+                        </Badge>
                       )}
                     </div>
                   </div>

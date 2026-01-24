@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Users, UserPlus, UserMinus, Building2 } from 'lucide-react';
+import { MapPin, Users, UserPlus, UserMinus, Building2, Clock } from 'lucide-react';
 
 interface Business {
   id: string;
@@ -19,6 +19,8 @@ interface Business {
   location: string | null;
   follower_count: number;
   is_following: boolean;
+  owner_id: string | null;
+  approval_status: string | null;
 }
 
 const CATEGORIES: Record<string, { label: string; icon: string }> = {
@@ -50,7 +52,7 @@ export function BusinessFeed() {
     try {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, description, category, logo_url, location')
+        .select('id, name, description, category, logo_url, location, owner_id, approval_status')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -150,6 +152,7 @@ export function BusinessFeed() {
     <div className="space-y-4">
       {businesses.map((business) => {
         const category = CATEGORIES[business.category] || CATEGORIES.other;
+        const isOwner = user?.id === business.owner_id;
         return (
           <Card 
             key={business.id} 
@@ -173,9 +176,22 @@ export function BusinessFeed() {
                       className="cursor-pointer flex-1"
                       onClick={() => navigate(`/business/${business.id}`)}
                     >
-                      <h3 className="font-semibold text-lg text-foreground truncate hover:text-primary transition-colors">
-                        {business.name}
-                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-lg text-foreground truncate hover:text-primary transition-colors">
+                          {business.name}
+                        </h3>
+                        {isOwner && business.approval_status === 'pending' && (
+                          <Badge variant="outline" className="text-orange-600 border-orange-600">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pending Approval
+                          </Badge>
+                        )}
+                        {isOwner && business.approval_status === 'rejected' && (
+                          <Badge variant="destructive">
+                            Rejected
+                          </Badge>
+                        )}
+                      </div>
                       <Badge variant="secondary" className="mt-1">
                         {category.icon} {category.label}
                       </Badge>
