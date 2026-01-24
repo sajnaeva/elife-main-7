@@ -113,19 +113,34 @@ export function JobCard({ job, onUpdate, showApplications }: JobCardProps) {
               </p>
             </div>
           </div>
-          <Badge variant={isExpired ? 'secondary' : 'default'} className={isExpired ? '' : 'bg-green-500'}>
-            {isExpired ? (
-              <>
-                <XCircle className="h-3 w-3 mr-1" />
-                Closed
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Open
-              </>
+          <div className="flex items-center gap-2">
+            {/* Show pending/rejected badge for creator */}
+            {isCreator && job.approval_status === 'pending' && (
+              <Badge variant="outline" className="text-orange-600 border-orange-600">
+                <Clock className="h-3 w-3 mr-1" />
+                Pending Approval
+              </Badge>
             )}
-          </Badge>
+            {isCreator && job.approval_status === 'rejected' && (
+              <Badge variant="destructive">
+                Rejected
+              </Badge>
+            )}
+            {/* Status badge */}
+            <Badge variant={isExpired ? 'secondary' : 'default'} className={isExpired ? '' : 'bg-green-500'}>
+              {isExpired ? (
+                <>
+                  <XCircle className="h-3 w-3 mr-1" />
+                  Closed
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Open
+                </>
+              )}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
