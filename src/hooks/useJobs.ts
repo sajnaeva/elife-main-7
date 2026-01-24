@@ -11,6 +11,7 @@ export interface Job {
   conditions: string | null;
   location: string | null;
   status: 'open' | 'closed';
+  approval_status: string | null;
   max_applications: number | null;
   expires_at: string | null;
   created_at: string;
