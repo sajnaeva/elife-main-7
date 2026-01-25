@@ -407,6 +407,121 @@ serve(async (req) => {
         break;
       }
 
+      case "reply": {
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { application_id, reply_type } = body;
+        if (!application_id) {
+          return new Response(
+            JSON.stringify({ error: "Application ID required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Get application and verify ownership
+        const { data: application } = await supabase
+          .from("job_applications")
+          .select("id, job_id, jobs:job_id(creator_id)")
+          .eq("id", application_id)
+          .single();
+
+        if (!application) {
+          return new Response(
+            JSON.stringify({ error: "Application not found" }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const jobCreatorId = (application.jobs as any)?.creator_id;
+        if (jobCreatorId !== userId) {
+          return new Response(
+            JSON.stringify({ error: "Not authorized to reply to this application" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Fixed reply messages
+        const replyMessages: Record<string, string> = {
+          contact_soon: "We will contact you soon. Thank you for your interest!",
+          shortlisted: "Congratulations! You have been shortlisted. We will contact you for further details.",
+          not_selected: "Thank you for applying. Unfortunately, we have decided to move forward with other candidates.",
+        };
+
+        const replyMessage = replyMessages[reply_type] || replyMessages.contact_soon;
+
+        const { error } = await supabase
+          .from("job_applications")
+          .update({
+            creator_reply: replyMessage,
+            replied_at: new Date().toISOString(),
+          })
+          .eq("id", application_id);
+
+        if (error) throw error;
+
+        result = { success: true, message: "Reply sent!" };
+        break;
+      }
+
+      case "get_all_applications": {
+        // Admin-only: get all applications for admin panel
+        const sessionToken = req.headers.get("x-session-token");
+        if (!sessionToken) {
+          return new Response(
+            JSON.stringify({ error: "Admin authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Check admin role
+        const { data: session } = await supabase
+          .from("user_sessions")
+          .select("user_id, expires_at, is_active")
+          .eq("session_token", sessionToken)
+          .eq("is_active", true)
+          .gt("expires_at", new Date().toISOString())
+          .single();
+
+        if (!session) {
+          return new Response(
+            JSON.stringify({ error: "Invalid or expired session" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user_id);
+
+        if (!roles || roles.length === 0) {
+          return new Response(
+            JSON.stringify({ error: "Unauthorized: Admin access required" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Fetch all applications with job and applicant details
+        const { data: applications, error: appsError } = await supabase
+          .from("job_applications")
+          .select(`
+            *,
+            jobs:job_id (id, title, creator_id, status, approval_status),
+            applicant:applicant_id (id, full_name, username, avatar_url, mobile_number, email)
+          `)
+          .order("created_at", { ascending: false });
+
+        if (appsError) throw appsError;
+
+        result = { applications: applications || [] };
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: "Invalid action" }),

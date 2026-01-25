@@ -36,43 +36,16 @@ export function ApplyJobDialog({ job, onApplied, hasApplied }: ApplyJobDialogPro
 
     setLoading(true);
     try {
-      // Check if job is still open
-      const { data: jobData, error: jobError } = await supabase
-        .from('jobs')
-        .select('status, expires_at, max_applications')
-        .eq('id', job.id)
-        .single();
+      const sessionToken = localStorage.getItem('samrambhak_auth');
+      const token = sessionToken ? JSON.parse(sessionToken).session_token : null;
 
-      if (jobError) throw jobError;
-
-      if (jobData.status !== 'open') {
-        toast.error('This job is no longer accepting applications');
-        setOpen(false);
-        onApplied?.();
-        return;
-      }
-
-      if (jobData.expires_at && new Date(jobData.expires_at) < new Date()) {
-        toast.error('This job has expired');
-        setOpen(false);
-        onApplied?.();
-        return;
-      }
-
-      const { error } = await supabase.from('job_applications').insert({
-        job_id: job.id,
-        applicant_id: user.id,
-        message: message.trim() || null,
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { action: 'apply', job_id: job.id, message: message.trim() || null },
+        headers: token ? { 'x-session-token': token } : {},
       });
 
-      if (error) {
-        if (error.code === '23505') {
-          toast.error('You have already applied to this job');
-        } else {
-          throw error;
-        }
-        return;
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success('Application submitted successfully!');
       setMessage('');

@@ -690,23 +690,29 @@ export type Database = {
         Row: {
           applicant_id: string
           created_at: string | null
+          creator_reply: string | null
           id: string
           job_id: string
           message: string | null
+          replied_at: string | null
         }
         Insert: {
           applicant_id: string
           created_at?: string | null
+          creator_reply?: string | null
           id?: string
           job_id: string
           message?: string | null
+          replied_at?: string | null
         }
         Update: {
           applicant_id?: string
           created_at?: string | null
+          creator_reply?: string | null
           id?: string
           job_id?: string
           message?: string | null
+          replied_at?: string | null
         }
         Relationships: [
           {

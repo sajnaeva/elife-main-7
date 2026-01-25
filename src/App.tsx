@@ -39,6 +39,7 @@ import AdminBlockedWords from "./pages/admin/AdminBlockedWords";
 import AdminPromotions from "./pages/admin/AdminPromotions";
 import AdminDeletionRequests from "./pages/admin/AdminDeletionRequests";
 import AdminJobs from "./pages/admin/AdminJobs";
+import AdminJobApplications from "./pages/admin/AdminJobApplications";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ const App = () => (
             <Route path="/admin/blocked-words" element={<AdminRoute requiredRole="content_moderator"><AdminBlockedWords /></AdminRoute>} />
             <Route path="/admin/promotions" element={<AdminRoute><AdminPromotions /></AdminRoute>} />
             <Route path="/admin/jobs" element={<AdminRoute><AdminJobs /></AdminRoute>} />
+            <Route path="/admin/job-applications" element={<AdminRoute><AdminJobApplications /></AdminRoute>} />
             <Route path="/admin/categories" element={<AdminRoute requiredRole="category_manager"><AdminCategories /></AdminRoute>} />
             <Route path="/admin/chat" element={<AdminRoute requiredRole="content_moderator"><AdminChatModeration /></AdminRoute>} />
             
