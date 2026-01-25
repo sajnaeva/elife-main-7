@@ -62,9 +62,9 @@ export function CreateJobDialog({ onJobCreated, trigger }: CreateJobDialogProps)
     setLoading(true);
     try {
       // Get session token for authentication
-      const sessionToken = localStorage.getItem('samrambhak_auth');
-      const parsed = sessionToken ? JSON.parse(sessionToken) : null;
-      const token = parsed?.sessionToken;
+      const stored = localStorage.getItem('samrambhak_auth');
+      const parsed = stored ? JSON.parse(stored) : null;
+      const token = parsed?.session_token;
 
       // Calculate expiry date if enabled
       let expiresAt: string | null = null;
