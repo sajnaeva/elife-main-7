@@ -158,3 +158,109 @@ export function useMyJobs() {
 
   return { jobs, loading, refetch: fetchMyJobs };
 }
+
+export interface MyApplication {
+  id: string;
+  job_id: string;
+  applicant_id: string;
+  message: string | null;
+  education_qualification: string | null;
+  experience_details: string | null;
+  creator_reply: string | null;
+  replied_at: string | null;
+  created_at: string;
+  jobs: {
+    id: string;
+    title: string;
+    description: string;
+    location: string | null;
+    status: 'open' | 'closed';
+    approval_status: string | null;
+    creator_id: string;
+    created_at: string;
+    profiles: {
+      id: string;
+      full_name: string | null;
+      username: string | null;
+      avatar_url: string | null;
+    };
+  };
+}
+
+export function useMyApplications() {
+  const { user } = useAuth();
+  const [applications, setApplications] = useState<MyApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchMyApplications = async () => {
+    if (!user) {
+      setApplications([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const sessionToken = getSessionToken();
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { action: 'my_applications' },
+        headers: sessionToken ? { 'x-session-token': sessionToken } : {},
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setApplications(data?.applications || []);
+    } catch (error) {
+      console.error('Error fetching my applications:', error);
+      toast.error('Failed to load your applications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyApplications();
+  }, [user]);
+
+  return { applications, loading, refetch: fetchMyApplications };
+}
+
+export function useIsBusinessOwner() {
+  const { user } = useAuth();
+  const [isBusinessOwner, setIsBusinessOwner] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const checkBusinessOwner = async () => {
+    if (!user) {
+      setIsBusinessOwner(false);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const sessionToken = getSessionToken();
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { action: 'check_business_owner' },
+        headers: sessionToken ? { 'x-session-token': sessionToken } : {},
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setIsBusinessOwner(data?.is_business_owner || false);
+    } catch (error) {
+      console.error('Error checking business owner:', error);
+      setIsBusinessOwner(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkBusinessOwner();
+  }, [user]);
+
+  return { isBusinessOwner, loading };
+}

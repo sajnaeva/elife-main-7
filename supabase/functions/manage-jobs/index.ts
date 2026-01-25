@@ -524,6 +524,62 @@ serve(async (req) => {
         break;
       }
 
+      case "my_applications": {
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Fetch all applications by this user with job details
+        const { data: applications, error: appsError } = await supabase
+          .from("job_applications")
+          .select(`
+            *,
+            jobs:job_id (
+              id, 
+              title, 
+              description,
+              location,
+              status, 
+              approval_status,
+              creator_id,
+              created_at,
+              profiles:creator_id (id, full_name, username, avatar_url)
+            )
+          `)
+          .eq("applicant_id", userId)
+          .order("created_at", { ascending: false });
+
+        if (appsError) throw appsError;
+
+        result = { applications: applications || [] };
+        break;
+      }
+
+      case "check_business_owner": {
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Check if user owns any approved business
+        const { data: businesses, error: bizError } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("owner_id", userId)
+          .eq("approval_status", "approved")
+          .limit(1);
+
+        if (bizError) throw bizError;
+
+        result = { is_business_owner: (businesses && businesses.length > 0) };
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: "Invalid action" }),
