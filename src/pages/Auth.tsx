@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Phone, Lock, User, ArrowLeft, AtSign, Check, X, Loader2, CalendarIcon } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock, User, ArrowLeft, AtSign, Check, X, Loader2, CalendarIcon, Pencil } from 'lucide-react';
 import { z } from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +38,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [usernameManuallyEdited, setUsernameManuallyEdited] = useState(false);
+  const [usernameEditEnabled, setUsernameEditEnabled] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
   
@@ -322,10 +323,12 @@ export default function Auth() {
                         <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input 
                           id="username" 
-                          placeholder="Choose a unique username" 
-                          className="pl-10 pr-10" 
+                          placeholder="Auto-generated username" 
+                          className={cn("pl-10 pr-10", !usernameEditEnabled && "bg-muted cursor-not-allowed")}
                           value={username} 
+                          readOnly={!usernameEditEnabled}
                           onChange={e => {
+                            if (!usernameEditEnabled) return;
                             const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
                             setUsername(value);
                             if (value) {
@@ -338,7 +341,7 @@ export default function Auth() {
                           }}
                           maxLength={30}
                         />
-                        {username.length >= 3 && (
+                        {usernameEditEnabled && username.length >= 3 && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {checkingUsername ? (
                               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -350,25 +353,41 @@ export default function Auth() {
                           </div>
                         )}
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!username || username.length < 3 || checkingUsername}
-                        onClick={() => checkUsernameAvailability(username)}
-                        className="shrink-0"
-                      >
-                        {checkingUsername ? 'Checking...' : 'Check'}
-                      </Button>
+                      {!usernameEditEnabled ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUsernameEditEnabled(true)}
+                          className="shrink-0"
+                        >
+                          <Pencil className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!username || username.length < 3 || checkingUsername}
+                          onClick={() => checkUsernameAvailability(username)}
+                          className="shrink-0"
+                        >
+                          {checkingUsername ? 'Checking...' : 'Check'}
+                        </Button>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Auto-generated from your name + last 4 digits of mobile. You can customize it.
+                      {usernameEditEnabled 
+                        ? "Enter your custom username (letters, numbers, underscores only)"
+                        : "Auto-generated from your name + last 4 digits of mobile. Click Edit to customize."
+                      }
                     </p>
                     {errors.username && <p className="text-sm text-destructive">{errors.username}</p>}
-                    {usernameAvailable === true && !errors.username && (
+                    {usernameEditEnabled && usernameAvailable === true && !errors.username && (
                       <p className="text-sm text-emerald-600 dark:text-emerald-400">Username is available!</p>
                     )}
-                    {usernameAvailable === false && (
+                    {usernameEditEnabled && usernameAvailable === false && (
                       <p className="text-sm text-destructive">Username is already taken. Try another.</p>
                     )}
                   </div>
