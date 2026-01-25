@@ -63,16 +63,22 @@ export function JobCard({ job, onUpdate, showApplications }: JobCardProps) {
 
   const handleCloseJob = async () => {
     try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ status: 'closed' })
-        .eq('id', job.id);
+      const sessionToken = localStorage.getItem('samrambhak_auth');
+      const token = sessionToken ? JSON.parse(sessionToken).session_token : null;
+
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { action: 'update', job_id: job.id, status: 'closed' },
+        headers: token ? { 'x-session-token': token } : {},
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
       toast.success('Job closed successfully');
       onUpdate?.();
-    } catch (error) {
-      toast.error('Failed to close job');
+    } catch (error: any) {
+      console.error('Error closing job:', error);
+      toast.error(error.message || 'Failed to close job');
     }
   };
 

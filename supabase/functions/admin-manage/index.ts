@@ -191,7 +191,61 @@ serve(async (req) => {
         await supabaseAdmin.from("admin_activity_logs").insert({
           admin_id: session.user_id,
           action: `Updated ${entity_type}: ${JSON.stringify(updates)}`,
-          target_type: entity_type.slice(0, -1), // Remove 's' for singular
+          target_type: entity_type.slice(0, -1),
+          target_id: entity_id,
+        });
+
+        result = { success: true };
+        break;
+      }
+
+      case "delete": {
+        if (!entity_id) {
+          throw new Error("Missing entity_id");
+        }
+
+        let tableName = "";
+        if (entity_type === "communities") {
+          // Delete community members first
+          await supabaseAdmin.from("community_members").delete().eq("community_id", entity_id);
+          await supabaseAdmin.from("community_permissions").delete().eq("community_id", entity_id);
+          await supabaseAdmin.from("community_discussions").delete().eq("community_id", entity_id);
+          await supabaseAdmin.from("community_poll_votes").delete().in("poll_id", 
+            (await supabaseAdmin.from("community_polls").select("id").eq("community_id", entity_id)).data?.map(p => p.id) || []
+          );
+          await supabaseAdmin.from("community_poll_options").delete().in("poll_id",
+            (await supabaseAdmin.from("community_polls").select("id").eq("community_id", entity_id)).data?.map(p => p.id) || []
+          );
+          await supabaseAdmin.from("community_polls").delete().eq("community_id", entity_id);
+          tableName = "communities";
+        } else if (entity_type === "businesses") {
+          // Delete business follows first
+          await supabaseAdmin.from("business_follows").delete().eq("business_id", entity_id);
+          await supabaseAdmin.from("business_images").delete().eq("business_id", entity_id);
+          tableName = "businesses";
+        } else if (entity_type === "jobs") {
+          // Delete job applications first
+          await supabaseAdmin.from("job_applications").delete().eq("job_id", entity_id);
+          tableName = "jobs";
+        } else {
+          throw new Error("Unknown entity type: " + entity_type);
+        }
+
+        const { error } = await supabaseAdmin
+          .from(tableName)
+          .delete()
+          .eq("id", entity_id);
+
+        if (error) {
+          console.error("Error deleting:", error);
+          throw error;
+        }
+
+        // Log activity
+        await supabaseAdmin.from("admin_activity_logs").insert({
+          admin_id: session.user_id,
+          action: `Deleted ${entity_type}`,
+          target_type: entity_type.slice(0, -1),
           target_id: entity_id,
         });
 

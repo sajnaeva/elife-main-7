@@ -20,10 +20,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { MoreHorizontal, Eye, CheckCircle, XCircle, Users } from 'lucide-react';
+import { MoreHorizontal, Eye, CheckCircle, XCircle, Users, Ban, Trash2, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Job {
@@ -50,7 +60,8 @@ const getSessionToken = () => {
 export default function AdminJobs() {
   const queryClient = useQueryClient();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [actionDialog, setActionDialog] = useState<'reject' | null>(null);
+  const [actionDialog, setActionDialog] = useState<'reject' | 'block' | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [actionReason, setActionReason] = useState('');
 
   const { data: jobs = [], isLoading, error } = useQuery({
@@ -100,6 +111,32 @@ export default function AdminJobs() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      const sessionToken = getSessionToken();
+      const { data, error } = await supabase.functions.invoke('admin-manage', {
+        body: { 
+          action: 'delete',
+          entity_type: 'jobs',
+          entity_id: jobId
+        },
+        headers: { 'x-session-token': sessionToken },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-jobs'] });
+      toast.success('Job deleted successfully');
+      setDeleteConfirmOpen(false);
+      setSelectedJob(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete job: ' + error.message);
+    },
+  });
+
   const handleApprove = (job: Job) => {
     updateMutation.mutate({
       jobId: job.id,
@@ -113,6 +150,19 @@ export default function AdminJobs() {
       jobId: selectedJob.id,
       updates: { approval_status: 'rejected' }
     });
+  };
+
+  const handleBlock = () => {
+    if (!selectedJob) return;
+    updateMutation.mutate({
+      jobId: selectedJob.id,
+      updates: { status: 'closed', approval_status: 'rejected' }
+    });
+  };
+
+  const handleDelete = () => {
+    if (!selectedJob) return;
+    deleteMutation.mutate(selectedJob.id);
   };
 
   const getStatusBadge = (job: Job) => {
@@ -220,6 +270,29 @@ export default function AdminJobs() {
                 </DropdownMenuItem>
               </>
             )}
+            <DropdownMenuSeparator />
+            {job.status === 'open' && job.approval_status === 'approved' && (
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedJob(job);
+                  setActionDialog('block');
+                }}
+                className="text-orange-600"
+              >
+                <Ban className="h-4 w-4 mr-2" />
+                Block Job
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedJob(job);
+                setDeleteConfirmOpen(true);
+              }}
+              className="text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Job
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -229,7 +302,7 @@ export default function AdminJobs() {
   return (
     <AdminLayout 
       title="Job Management" 
-      description="Review and approve job postings, manage applications"
+      description="Review, approve, block or delete job postings"
     >
       {error && (
         <div className="mb-4 p-4 bg-destructive/10 text-destructive rounded-lg">
@@ -289,11 +362,76 @@ export default function AdminJobs() {
               onClick={handleReject}
               disabled={updateMutation.isPending || !actionReason.trim()}
             >
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Reject
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Block Dialog */}
+      <Dialog open={actionDialog === 'block'} onOpenChange={() => setActionDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Block Job</DialogTitle>
+            <DialogDescription>
+              This will close the job and mark it as rejected.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Job</Label>
+              <p className="text-sm text-muted-foreground">{selectedJob?.title}</p>
+            </div>
+            <div>
+              <Label htmlFor="block-reason">Reason for Blocking</Label>
+              <Textarea
+                id="block-reason"
+                placeholder="Enter reason for blocking..."
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActionDialog(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBlock}
+              disabled={updateMutation.isPending || !actionReason.trim()}
+            >
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Block Job
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Job Permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{selectedJob?.title}" and all its applications. 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

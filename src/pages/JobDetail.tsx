@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,7 @@ import {
   MessageSquare,
   Reply,
   Loader2,
+  CheckSquare,
 } from 'lucide-react';
 import { ApplyJobDialog } from '@/components/jobs/ApplyJobDialog';
 
@@ -42,6 +44,14 @@ export default function JobDetail() {
   const { user } = useAuth();
   const { job, applications, loading, refetch } = useJob(id || '');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [selectedApplications, setSelectedApplications] = useState<string[]>([]);
+  const [bulkReplying, setBulkReplying] = useState(false);
+
+  // Filter applications that haven't been replied to
+  const unrepliedApplications = useMemo(() => 
+    applications.filter(app => !app.creator_reply), 
+    [applications]
+  );
 
   const handleReply = async (applicationId: string, replyType: string) => {
     setReplyingTo(applicationId);
@@ -64,6 +74,57 @@ export default function JobDetail() {
       toast.error(error.message || 'Failed to send reply');
     } finally {
       setReplyingTo(null);
+    }
+  };
+
+  const handleBulkReply = async (replyType: string) => {
+    if (selectedApplications.length === 0) {
+      toast.error('Please select at least one application');
+      return;
+    }
+
+    setBulkReplying(true);
+    try {
+      const sessionToken = localStorage.getItem('samrambhak_auth');
+      const token = sessionToken ? JSON.parse(sessionToken).session_token : null;
+
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { 
+          action: 'bulk_reply', 
+          job_id: id,
+          application_ids: selectedApplications, 
+          reply_type: replyType 
+        },
+        headers: token ? { 'x-session-token': token } : {},
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(data.message || 'Replies sent!');
+      setSelectedApplications([]);
+      refetch();
+    } catch (error: any) {
+      console.error('Error bulk replying:', error);
+      toast.error(error.message || 'Failed to send replies');
+    } finally {
+      setBulkReplying(false);
+    }
+  };
+
+  const toggleSelectApplication = (appId: string) => {
+    setSelectedApplications(prev => 
+      prev.includes(appId) 
+        ? prev.filter(id => id !== appId)
+        : [...prev, appId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedApplications.length === unrepliedApplications.length) {
+      setSelectedApplications([]);
+    } else {
+      setSelectedApplications(unrepliedApplications.map(app => app.id));
     }
   };
 
@@ -123,16 +184,22 @@ export default function JobDetail() {
 
   const handleCloseJob = async () => {
     try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ status: 'closed' })
-        .eq('id', job.id);
+      const sessionToken = localStorage.getItem('samrambhak_auth');
+      const token = sessionToken ? JSON.parse(sessionToken).session_token : null;
+
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { action: 'update', job_id: job.id, status: 'closed' },
+        headers: token ? { 'x-session-token': token } : {},
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
       toast.success('Job closed successfully');
       refetch();
-    } catch (error) {
-      toast.error('Failed to close job');
+    } catch (error: any) {
+      console.error('Error closing job:', error);
+      toast.error(error.message || 'Failed to close job');
     }
   };
 
@@ -267,10 +334,57 @@ export default function JobDetail() {
         {isCreator && (
           <Card className="border-0 shadow-soft">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Applications ({applications.length})
-              </CardTitle>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Applications ({applications.length})
+                </CardTitle>
+                
+                {/* Bulk Reply Actions */}
+                {unrepliedApplications.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleSelectAll}
+                      className="gap-2"
+                    >
+                      <CheckSquare className="h-4 w-4" />
+                      {selectedApplications.length === unrepliedApplications.length ? 'Deselect All' : 'Select All Unreplied'}
+                    </Button>
+                    
+                    {selectedApplications.length > 0 && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            size="sm"
+                            disabled={bulkReplying}
+                            className="gap-2"
+                          >
+                            {bulkReplying ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Reply className="h-4 w-4" />
+                            )}
+                            Reply to {selectedApplications.length} selected
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleBulkReply('contact_soon')}>
+                            We will contact you soon
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleBulkReply('shortlisted')}>
+                            You are shortlisted
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleBulkReply('not_selected')}>
+                            Not selected
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {applications.length === 0 ? (
@@ -282,6 +396,14 @@ export default function JobDetail() {
                   {applications.map((app) => (
                     <div key={app.id} className="border rounded-lg p-4">
                       <div className="flex items-start gap-3">
+                        {/* Checkbox for bulk selection - only for unreplied */}
+                        {!app.creator_reply && (
+                          <Checkbox
+                            checked={selectedApplications.includes(app.id)}
+                            onCheckedChange={() => toggleSelectApplication(app.id)}
+                            className="mt-1"
+                          />
+                        )}
                         <Avatar>
                           <AvatarImage src={app.profiles?.avatar_url || ''} />
                           <AvatarFallback>
@@ -338,16 +460,16 @@ export default function JobDetail() {
 
                           {/* Reply Section */}
                           {app.creator_reply ? (
-                            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                              <p className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
+                            <div className="mt-3 p-3 bg-muted/30 border rounded-lg">
+                              <p className="text-sm font-medium text-primary flex items-center gap-2">
                                 <CheckCircle className="h-4 w-4" />
                                 Reply Sent
                               </p>
-                              <p className="text-sm text-green-600 dark:text-green-300 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {app.creator_reply}
                               </p>
                               {app.replied_at && (
-                                <p className="text-xs text-green-500 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                   Sent {formatDistanceToNow(new Date(app.replied_at), { addSuffix: true })}
                                 </p>
                               )}
