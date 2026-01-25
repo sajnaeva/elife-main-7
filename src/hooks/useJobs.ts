@@ -31,6 +31,8 @@ export interface JobApplication {
   job_id: string;
   applicant_id: string;
   message: string | null;
+  creator_reply: string | null;
+  replied_at: string | null;
   created_at: string;
   profiles?: {
     id: string;

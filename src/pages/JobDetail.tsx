@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +13,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   ArrowLeft,
   Briefcase,
   MapPin,
@@ -24,6 +31,8 @@ import {
   Mail,
   User,
   MessageSquare,
+  Reply,
+  Loader2,
 } from 'lucide-react';
 import { ApplyJobDialog } from '@/components/jobs/ApplyJobDialog';
 
@@ -32,6 +41,31 @@ export default function JobDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { job, applications, loading, refetch } = useJob(id || '');
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+
+  const handleReply = async (applicationId: string, replyType: string) => {
+    setReplyingTo(applicationId);
+    try {
+      const sessionToken = localStorage.getItem('samrambhak_auth');
+      const token = sessionToken ? JSON.parse(sessionToken).session_token : null;
+
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: { action: 'reply', application_id: applicationId, reply_type: replyType },
+        headers: token ? { 'x-session-token': token } : {},
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Reply sent to applicant!');
+      refetch();
+    } catch (error: any) {
+      console.error('Error replying:', error);
+      toast.error(error.message || 'Failed to send reply');
+    } finally {
+      setReplyingTo(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -301,6 +335,54 @@ export default function JobDetail() {
                               View Profile
                             </Button>
                           </div>
+
+                          {/* Reply Section */}
+                          {app.creator_reply ? (
+                            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                              <p className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4" />
+                                Reply Sent
+                              </p>
+                              <p className="text-sm text-green-600 dark:text-green-300 mt-1">
+                                {app.creator_reply}
+                              </p>
+                              {app.replied_at && (
+                                <p className="text-xs text-green-500 mt-1">
+                                  Sent {formatDistanceToNow(new Date(app.replied_at), { addSuffix: true })}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mt-3">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    disabled={replyingTo === app.id}
+                                  >
+                                    {replyingTo === app.id ? (
+                                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    ) : (
+                                      <Reply className="h-4 w-4 mr-1" />
+                                    )}
+                                    Send Reply
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                  <DropdownMenuItem onClick={() => handleReply(app.id, 'contact_soon')}>
+                                    We will contact you soon
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleReply(app.id, 'shortlisted')}>
+                                    You are shortlisted
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleReply(app.id, 'not_selected')}>
+                                    Not selected
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
