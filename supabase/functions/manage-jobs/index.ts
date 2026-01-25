@@ -470,6 +470,62 @@ serve(async (req) => {
         break;
       }
 
+      case "bulk_reply": {
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { job_id, application_ids, reply_type } = body;
+        if (!job_id || !application_ids || !Array.isArray(application_ids) || application_ids.length === 0) {
+          return new Response(
+            JSON.stringify({ error: "Job ID and application IDs required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Verify job ownership
+        const { data: job } = await supabase
+          .from("jobs")
+          .select("creator_id")
+          .eq("id", job_id)
+          .single();
+
+        if (!job || job.creator_id !== userId) {
+          return new Response(
+            JSON.stringify({ error: "Not authorized to reply to these applications" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Fixed reply messages
+        const replyMessages: Record<string, string> = {
+          contact_soon: "We will contact you soon. Thank you for your interest!",
+          shortlisted: "Congratulations! You have been shortlisted. We will contact you for further details.",
+          not_selected: "Thank you for applying. Unfortunately, we have decided to move forward with other candidates.",
+        };
+
+        const replyMessage = replyMessages[reply_type] || replyMessages.contact_soon;
+
+        // Update all selected applications
+        const { error: updateError, count } = await supabase
+          .from("job_applications")
+          .update({
+            creator_reply: replyMessage,
+            replied_at: new Date().toISOString(),
+          })
+          .eq("job_id", job_id)
+          .in("id", application_ids)
+          .is("creator_reply", null);
+
+        if (updateError) throw updateError;
+
+        result = { success: true, message: `Replied to ${count || application_ids.length} applications!`, count: count || application_ids.length };
+        break;
+      }
+
       case "get_all_applications": {
         // Admin-only: get all applications for admin panel
         const sessionToken = req.headers.get("x-session-token");
