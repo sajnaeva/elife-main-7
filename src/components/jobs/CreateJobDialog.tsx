@@ -61,39 +61,35 @@ export function CreateJobDialog({ onJobCreated, trigger }: CreateJobDialogProps)
 
     setLoading(true);
     try {
-      const jobData: {
-        creator_id: string;
-        title: string;
-        description: string;
-        conditions: string | null;
-        location: string | null;
-        max_applications: number | null;
-        expires_at: string | null;
-        approval_status: string;
-      } = {
-        creator_id: user.id,
-        title: title.trim(),
-        description: description.trim(),
-        conditions: conditions.trim() || null,
-        location: location.trim() || null,
-        max_applications: null,
-        expires_at: null,
-        approval_status: 'pending', // Require admin approval
-      };
+      // Get session token for authentication
+      const sessionToken = localStorage.getItem('samrambhak_auth');
+      const parsed = sessionToken ? JSON.parse(sessionToken) : null;
+      const token = parsed?.sessionToken;
 
-      if (useCountExpiry && maxApplications) {
-        jobData.max_applications = parseInt(maxApplications);
-      }
-
+      // Calculate expiry date if enabled
+      let expiresAt: string | null = null;
       if (useTimeExpiry && expiryDays) {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + parseInt(expiryDays));
-        jobData.expires_at = expiryDate.toISOString();
+        expiresAt = expiryDate.toISOString();
       }
 
-      const { error } = await supabase.from('jobs').insert(jobData);
+      // Use edge function to create job (bypasses RLS)
+      const { data, error } = await supabase.functions.invoke('manage-jobs', {
+        body: {
+          action: 'create',
+          title: title.trim(),
+          description: description.trim(),
+          conditions: conditions.trim() || null,
+          location: location.trim() || null,
+          max_applications: useCountExpiry && maxApplications ? parseInt(maxApplications) : null,
+          expires_at: expiresAt,
+        },
+        headers: token ? { 'x-session-token': token } : {},
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast.success('Job created! It will be visible after admin approval.');
       resetForm();
