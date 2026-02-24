@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 interface AdminInfo {
   id: string;
   user_id: string;
+  full_name: string | null;
   is_active: boolean;
   phone: string | null;
   created_at: string;
   division: { name: string } | null;
-  profile: { full_name: string | null; email: string } | null;
 }
 
 interface DivisionInfo {

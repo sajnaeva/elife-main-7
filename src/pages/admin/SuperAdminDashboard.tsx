@@ -199,7 +199,7 @@ export default function SuperAdminDashboard() {
                           onClick={() => handleToggleAdmin(
                             admin.id, 
                             admin.is_active ?? true,
-                            admin.profile?.full_name || "Admin"
+                            admin.full_name || "Admin"
                           )}
                         >
                           {admin.is_active ? (
