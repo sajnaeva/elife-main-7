@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ import { format } from "date-fns";
 
 export default function ProgramDetail() {
   const { id } = useParams<{ id: string }>();
+  const { adminToken } = useAuth();
   const { program, isLoading, error, refetch } = useProgram(id);
   const { registrations, isLoading: registrationsLoading, refetch: refetchRegistrations } =
     useProgramRegistrations(id);
@@ -81,23 +83,28 @@ export default function ProgramDetail() {
   };
 
   const handleUpdateProgram = async () => {
-    if (!program) return;
+    if (!program || !adminToken) return;
     setIsUpdating(true);
 
     try {
-      const { error } = await supabase
-        .from("programs")
-        .update({
-          name: editName.trim(),
-          description: editDescription.trim() || null,
-          start_date: editStartDate || null,
-          end_date: editEndDate || null,
-          is_active: editIsActive,
-          verification_enabled: editVerificationEnabled,
-        })
-        .eq("id", program.id);
+      const response = await supabase.functions.invoke("admin-programs", {
+        headers: { "x-admin-token": adminToken },
+        body: {
+          action: "update",
+          data: {
+            id: program.id,
+            name: editName.trim(),
+            description: editDescription.trim() || null,
+            start_date: editStartDate || null,
+            end_date: editEndDate || null,
+            is_active: editIsActive,
+            verification_enabled: editVerificationEnabled,
+          },
+        },
+      });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
+      if (response.data?.error) throw new Error(response.data.error);
 
       toast({
         title: "Program updated",

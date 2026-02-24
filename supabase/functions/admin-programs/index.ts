@@ -163,6 +163,7 @@ serve(async (req) => {
         if (data.is_active !== undefined) updateData.is_active = data.is_active;
         if (data.start_date !== undefined) updateData.start_date = data.start_date;
         if (data.end_date !== undefined) updateData.end_date = data.end_date;
+        if (data.verification_enabled !== undefined) updateData.verification_enabled = data.verification_enabled;
         if (data.all_panchayaths !== undefined) {
           updateData.all_panchayaths = data.all_panchayaths;
           updateData.panchayath_id = data.all_panchayaths ? null : data.panchayath_id;
