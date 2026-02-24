@@ -182,7 +182,7 @@ export default function SuperAdminDashboard() {
                     <div key={admin.id} className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate text-sm">
-                          {admin.profile?.full_name || "N/A"}
+                          {admin.full_name || "N/A"}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {admin.division?.name || "No Division"}
@@ -199,7 +199,7 @@ export default function SuperAdminDashboard() {
                           onClick={() => handleToggleAdmin(
                             admin.id, 
                             admin.is_active ?? true,
-                            admin.profile?.full_name || "Admin"
+                            admin.full_name || "Admin"
                           )}
                         >
                           {admin.is_active ? (

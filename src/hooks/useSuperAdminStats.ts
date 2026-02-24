@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 interface AdminInfo {
   id: string;
   user_id: string;
+  full_name: string | null;
   is_active: boolean;
   phone: string | null;
   created_at: string;
   division: { name: string } | null;
-  profile: { full_name: string | null; email: string } | null;
 }
 
 interface DivisionInfo {
@@ -76,6 +76,7 @@ export function useSuperAdminStats(): SuperAdminStats & {
           .select(`
             id,
             user_id,
+            full_name,
             is_active,
             phone,
             created_at,
@@ -85,21 +86,10 @@ export function useSuperAdminStats(): SuperAdminStats & {
         
         if (adminsError) throw adminsError;
 
-        // Fetch profiles for admins
-        const adminData: AdminInfo[] = [];
-        for (const admin of admins || []) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, email")
-            .eq("id", admin.user_id)
-            .maybeSingle();
-          
-          adminData.push({
-            ...admin,
-            division: admin.division as { name: string } | null,
-            profile,
-          });
-        }
+        const adminData: AdminInfo[] = (admins || []).map((admin) => ({
+          ...admin,
+          division: admin.division as { name: string } | null,
+        }));
 
         // Fetch divisions with counts
         const { data: divisions, error: divisionsError } = await supabase
