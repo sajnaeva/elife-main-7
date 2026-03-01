@@ -143,6 +143,27 @@ serve(async (req) => {
     if (req.method === "POST" && action === "create") {
       const { agent } = body;
       
+      // Duplicate check: look for existing agent with same mobile in same panchayath
+      const { data: existing } = await supabase
+        .from("pennyekart_agents")
+        .select("id, name, role, mobile, panchayath_id")
+        .eq("mobile", agent.mobile);
+
+      if (existing && existing.length > 0) {
+        const dup = existing[0];
+        // Get panchayath name for better error message
+        const { data: panchData } = await supabase
+          .from("panchayaths")
+          .select("name")
+          .eq("id", dup.panchayath_id)
+          .single();
+        const panchName = panchData?.name || "unknown";
+        return new Response(
+          JSON.stringify({ error: `Duplicate: Mobile ${agent.mobile} already exists for agent "${dup.name}" (${dup.role}) in ${panchName}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const { data, error } = await supabase
         .from("pennyekart_agents")
         .insert({
@@ -171,6 +192,31 @@ serve(async (req) => {
     if (req.method === "POST" && action === "bulk_create") {
       const { agents } = body;
       
+      // Duplicate check: check all mobiles in this batch against existing agents
+      const mobiles = agents.map((a: any) => a.mobile);
+      
+      // Also check for duplicates within the batch itself
+      const batchDuplicates = mobiles.filter((m: string, i: number) => mobiles.indexOf(m) !== i);
+      if (batchDuplicates.length > 0) {
+        return new Response(
+          JSON.stringify({ error: `Duplicate mobiles within batch: ${[...new Set(batchDuplicates)].join(", ")}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: existingAgents } = await supabase
+        .from("pennyekart_agents")
+        .select("mobile, name, role")
+        .in("mobile", mobiles);
+
+      if (existingAgents && existingAgents.length > 0) {
+        const dupDetails = existingAgents.map((a: any) => `${a.mobile} (${a.name}, ${a.role})`).join("; ");
+        return new Response(
+          JSON.stringify({ error: `Duplicate mobile numbers already exist: ${dupDetails}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const agentsWithCreator = agents.map((a: any) => ({
         ...a,
         created_by: admin.admin_id,
