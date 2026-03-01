@@ -273,8 +273,19 @@ serve(async (req) => {
       });
     }
 
-    // DELETE - Delete agent
+    // DELETE - Delete agent (cascade: reassign or delete children first)
     if (req.method === "DELETE" && agentId) {
+      // First, remove references from child agents by setting their parent_agent_id to null
+      const { error: childError } = await supabase
+        .from("pennyekart_agents")
+        .update({ parent_agent_id: null })
+        .eq("parent_agent_id", agentId);
+
+      if (childError) {
+        console.error("Error clearing children:", childError);
+        throw childError;
+      }
+
       const { error } = await supabase
         .from("pennyekart_agents")
         .delete()
