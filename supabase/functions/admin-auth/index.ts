@@ -43,7 +43,7 @@ serve(async (req) => {
 
         const { data: admin, error: adminError } = await supabase
           .from("admins")
-          .select("id, user_id, division_id, full_name, access_all_divisions, additional_division_ids, is_active, is_read_only")
+          .select("id, user_id, division_id, full_name, access_all_divisions, additional_division_ids, is_active, is_read_only, cash_collection_enabled")
           .eq("id", decoded.admin_id)
           .single();
 
@@ -65,6 +65,7 @@ serve(async (req) => {
               access_all_divisions: admin.access_all_divisions,
               additional_division_ids: admin.additional_division_ids,
               is_read_only: admin.is_read_only,
+              cash_collection_enabled: admin.cash_collection_enabled,
             },
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -92,7 +93,7 @@ serve(async (req) => {
       // Find admin by phone
       const { data: admin, error: adminError } = await supabase
         .from("admins")
-        .select("id, user_id, password_hash, is_active, division_id, full_name, access_all_divisions, additional_division_ids, is_read_only")
+        .select("id, user_id, password_hash, is_active, division_id, full_name, access_all_divisions, additional_division_ids, is_read_only, cash_collection_enabled")
         .eq("phone", normalizedPhone)
         .single();
       
@@ -168,6 +169,7 @@ serve(async (req) => {
             access_all_divisions: admin.access_all_divisions,
             additional_division_ids: admin.additional_division_ids,
             is_read_only: admin.is_read_only,
+            cash_collection_enabled: admin.cash_collection_enabled,
           },
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

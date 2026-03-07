@@ -168,12 +168,14 @@ export default function DivisionAdminDashboard() {
               </Link>
             </Button>
           )}
-          <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
-            <Link to={`/admin/division/${divisionId}/cash-collections`} className="flex flex-col items-center gap-1.5 sm:gap-2">
-              <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="text-xs sm:text-sm">Cash Collection</span>
-            </Link>
-          </Button>
+          {adminData?.cash_collection_enabled && (
+            <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
+              <Link to={`/admin/division/${divisionId}/cash-collections`} className="flex flex-col items-center gap-1.5 sm:gap-2">
+                <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm">Cash Collection</span>
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 mb-6 sm:mb-8">

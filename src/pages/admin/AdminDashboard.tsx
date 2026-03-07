@@ -207,12 +207,14 @@ export default function AdminDashboard() {
               <span className="text-xs sm:text-sm text-orange-600">Pennyekart Agents</span>
             </Link>
           </Button>
-          <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
-            <Link to={`/admin/division/${adminData?.division_id}/cash-collections`} className="flex flex-col items-center gap-1.5 sm:gap-2">
-              <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="text-xs sm:text-sm">Cash Collection</span>
-            </Link>
-          </Button>
+          {adminData?.cash_collection_enabled && (
+            <Button asChild variant="outline" className="h-auto py-3 sm:py-4">
+              <Link to={`/admin/division/${adminData?.division_id}/cash-collections`} className="flex flex-col items-center gap-1.5 sm:gap-2">
+                <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm">Cash Collection</span>
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Accessible Divisions - only shown for admins with multi-division access */}
