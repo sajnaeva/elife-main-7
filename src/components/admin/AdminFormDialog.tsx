@@ -71,6 +71,7 @@ export function AdminFormDialog({
     setPassword("");
     setDivisionId("");
     setIsReadOnly(false);
+    setCashCollectionEnabled(false);
     setError("");
   };
 
