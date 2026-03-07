@@ -57,34 +57,76 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get admin token from header
+    // Support both admin token and Supabase JWT (for super_admin)
     const adminToken = req.headers.get("x-admin-token");
-    if (!adminToken) {
+    const authHeader = req.headers.get("authorization");
+    
+    let divisionId: string;
+    let adminId: string;
+
+    if (adminToken) {
+      // Verify custom admin token
+      const adminPayload = await verifyAdminToken(adminToken, supabaseServiceKey);
+      if (!adminPayload) {
+        return new Response(
+          JSON.stringify({ error: "Invalid or expired token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Verify admin is still active
+      const { data: admin, error: adminError } = await supabase
+        .from("admins")
+        .select("id, is_active, division_id")
+        .eq("id", adminPayload.admin_id)
+        .single();
+
+      if (adminError || !admin || !admin.is_active) {
+        return new Response(
+          JSON.stringify({ error: "Admin account not found or inactive" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      divisionId = admin.division_id;
+      adminId = admin.id;
+    } else if (authHeader) {
+      // Verify Supabase JWT for super_admin
+      const token = authHeader.replace("Bearer ", "");
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: { user }, error: userError } = await userClient.auth.getUser(token);
+      
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({ error: "Invalid authorization" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check if super_admin
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "super_admin")
+        .single();
+
+      if (!roleData) {
+        return new Response(
+          JSON.stringify({ error: "Insufficient permissions" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Super admin can access all divisions
+      divisionId = "__super_admin__";
+      adminId = user.id;
+    } else {
       return new Response(
         JSON.stringify({ error: "Admin token required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify token
-    const adminPayload = await verifyAdminToken(adminToken, supabaseServiceKey);
-    if (!adminPayload) {
-      return new Response(
-        JSON.stringify({ error: "Invalid or expired token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify admin is still active
-    const { data: admin, error: adminError } = await supabase
-      .from("admins")
-      .select("id, is_active, division_id")
-      .eq("id", adminPayload.admin_id)
-      .single();
-
-    if (adminError || !admin || !admin.is_active) {
-      return new Response(
-        JSON.stringify({ error: "Admin account not found or inactive" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -92,10 +134,9 @@ serve(async (req) => {
     const body = await req.json();
     const { action, data } = body;
 
-    const divisionId = admin.division_id;
-
     // Helper to verify program belongs to admin's division
     async function verifyProgramAccess(programId: string): Promise<boolean> {
+      if (divisionId === "__super_admin__") return true;
       const { data: program, error } = await supabase
         .from("programs")
         .select("division_id")
