@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           access_all_divisions: boolean
           additional_division_ids: string[]
+          cash_collection_enabled: boolean
           created_at: string | null
           created_by: string | null
           division_id: string
@@ -32,6 +33,7 @@ export type Database = {
         Insert: {
           access_all_divisions?: boolean
           additional_division_ids?: string[]
+          cash_collection_enabled?: boolean
           created_at?: string | null
           created_by?: string | null
           division_id: string
@@ -46,6 +48,7 @@ export type Database = {
         Update: {
           access_all_divisions?: boolean
           additional_division_ids?: string[]
+          cash_collection_enabled?: boolean
           created_at?: string | null
           created_by?: string | null
           division_id?: string

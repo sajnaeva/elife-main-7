@@ -1,0 +1,1 @@
+ALTER TABLE public.admins ADD COLUMN cash_collection_enabled boolean NOT NULL DEFAULT false;
