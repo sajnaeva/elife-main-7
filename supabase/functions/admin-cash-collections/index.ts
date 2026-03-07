@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
       });
 
       // Add registrations
-      matchedRegs.forEach((r: any) => {
+      matchedRegs?.forEach((r: any) => {
         const answers = r.answers as Record<string, any>;
         const fixed = answers?._fixed as Record<string, string> | undefined;
         results.push({

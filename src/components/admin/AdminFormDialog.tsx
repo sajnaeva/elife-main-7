@@ -109,7 +109,7 @@ export function AdminFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isCreate ? "Create New Admin" : "Edit Admin"}</DialogTitle>
           <DialogDescription>
