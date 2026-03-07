@@ -161,7 +161,18 @@ export default function CashCollections() {
     if (activeTab === "report") loadReport();
   }, [activeTab, loadCollections, loadReport]);
 
-  // Select person from search
+  // Access checks (after all hooks)
+  if (!isAdmin && !isSuperAdmin) return <Navigate to="/unauthorized" replace />;
+
+  const hasAccess =
+    isSuperAdmin ||
+    adminData?.access_all_divisions ||
+    adminData?.division_id === divisionId ||
+    (adminData?.additional_division_ids || []).includes(divisionId || "");
+
+  if (!hasAccess) return <Navigate to="/unauthorized" replace />;
+
+
   const selectPerson = (person: SearchResult) => {
     setSelectedPerson(person);
     setShowNewPersonForm(false);
