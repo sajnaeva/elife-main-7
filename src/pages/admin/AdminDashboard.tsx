@@ -29,7 +29,6 @@ import {
   Building2,
   Clock,
   ExternalLink,
-  Network
   Network,
   IndianRupee
 } from "lucide-react";
