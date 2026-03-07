@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import SuperAdminDashboard from "./pages/admin/SuperAdminDashboard";
 import PennyekartAgentHierarchy from "./pages/admin/PennyekartAgentHierarchy";
 import DivisionAdminDashboard from "./pages/admin/DivisionAdminDashboard";
+import CashCollections from "./pages/admin/CashCollections";
 
 const queryClient = new QueryClient();
 
