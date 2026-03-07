@@ -239,6 +239,7 @@ export default function AdminsManagement() {
             phone: editingAdmin.phone || "",
             divisionId: editingAdmin.division_id,
             isReadOnly: editingAdmin.is_read_only ?? false,
+            cashCollectionEnabled: editingAdmin.cash_collection_enabled ?? false,
           } : undefined}
         />
 
