@@ -67,6 +67,100 @@ export type Database = {
           },
         ]
       }
+      cash_collections: {
+        Row: {
+          amount: number
+          collected_by: string
+          collected_by_name: string | null
+          created_at: string
+          division_id: string
+          id: string
+          member_id: string | null
+          mobile: string
+          notes: string | null
+          panchayath_id: string | null
+          panchayath_name: string | null
+          person_name: string
+          receipt_number: string | null
+          status: Database["public"]["Enums"]["cash_collection_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          submitted_by_name: string | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          verified_by_name: string | null
+        }
+        Insert: {
+          amount?: number
+          collected_by: string
+          collected_by_name?: string | null
+          created_at?: string
+          division_id: string
+          id?: string
+          member_id?: string | null
+          mobile: string
+          notes?: string | null
+          panchayath_id?: string | null
+          panchayath_name?: string | null
+          person_name: string
+          receipt_number?: string | null
+          status?: Database["public"]["Enums"]["cash_collection_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_by_name?: string | null
+        }
+        Update: {
+          amount?: number
+          collected_by?: string
+          collected_by_name?: string | null
+          created_at?: string
+          division_id?: string
+          id?: string
+          member_id?: string | null
+          mobile?: string
+          notes?: string | null
+          panchayath_id?: string | null
+          panchayath_name?: string | null
+          person_name?: string
+          receipt_number?: string | null
+          status?: Database["public"]["Enums"]["cash_collection_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          submitted_by_name?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_by_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_collections_division_id_fkey"
+            columns: ["division_id"]
+            isOneToOne: false
+            referencedRelation: "divisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_collections_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_collections_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: false
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clusters: {
         Row: {
           created_at: string | null
@@ -642,6 +736,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "admin" | "member"
+      cash_collection_status: "pending" | "verified" | "submitted"
       pennyekart_agent_role:
         | "team_leader"
         | "coordinator"
@@ -775,6 +870,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "admin", "member"],
+      cash_collection_status: ["pending", "verified", "submitted"],
       pennyekart_agent_role: [
         "team_leader",
         "coordinator",

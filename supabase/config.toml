@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.pennyekart-agents]
 verify_jwt = false
+
+[functions.admin-cash-collections]
+verify_jwt = false
