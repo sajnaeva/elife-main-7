@@ -75,9 +75,9 @@ export function AdminFormDialog({
     setError("");
   };
 
-  // Sync initial data when dialog opens with new data
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen && initialData) {
+  // Sync initial data when it changes (handles programmatic open)
+  useEffect(() => {
+    if (open && initialData) {
       setFullName(initialData.fullName);
       setPhone(initialData.phone);
       setDivisionId(initialData.divisionId);
@@ -86,6 +86,9 @@ export function AdminFormDialog({
       setPassword("");
       setError("");
     }
+  }, [open, initialData]);
+
+  const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) resetForm();
     onOpenChange(isOpen);
   };
