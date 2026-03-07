@@ -82,6 +82,7 @@ export function AdminFormDialog({
       setPhone(initialData.phone);
       setDivisionId(initialData.divisionId);
       setIsReadOnly(initialData.isReadOnly ?? false);
+      setCashCollectionEnabled(initialData.cashCollectionEnabled ?? false);
       setPassword("");
       setError("");
     }
