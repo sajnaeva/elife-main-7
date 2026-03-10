@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (program.division_id !== divisionId) {
+    if (!canAccessDivision(program.division_id)) {
       return new Response(
         JSON.stringify({ error: "Access denied: Program belongs to different division" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
