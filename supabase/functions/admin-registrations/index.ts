@@ -45,6 +45,23 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Fetch admin record to check multi-division access
+    const { data: adminRecord } = await supabase
+      .from("admins")
+      .select("access_all_divisions, additional_division_ids")
+      .eq("id", adminId)
+      .single();
+
+    const accessAllDivisions = adminRecord?.access_all_divisions ?? false;
+    const additionalDivisionIds: string[] = adminRecord?.additional_division_ids ?? [];
+
+    const canAccessDivision = (targetDivisionId: string) => {
+      if (accessAllDivisions) return true;
+      if (targetDivisionId === divisionId) return true;
+      if (additionalDivisionIds.includes(targetDivisionId)) return true;
+      return false;
+    };
+
     const url = new URL(req.url);
 
     // Handle PUT for verification updates or rank updates
