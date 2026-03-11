@@ -69,6 +69,8 @@ export default function SuperAdminCashCollections() {
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterDivision, setFilterDivision] = useState<string>("all");
+  const [searchMobile, setSearchMobile] = useState("");
 
   // Edit state
   const [editDialog, setEditDialog] = useState(false);
@@ -131,6 +133,18 @@ export default function SuperAdminCashCollections() {
     if (activeTab === "collections") loadCollections();
     if (activeTab === "report") loadReport();
   }, [activeTab, loadCollections, loadReport]);
+
+  // Derive unique divisions from collections
+  const uniqueDivisions = Array.from(
+    new Map(collections.filter(c => c.divisions?.name).map(c => [c.division_id, c.divisions!.name])).entries()
+  ).sort((a, b) => a[1].localeCompare(b[1]));
+
+  // Client-side filtering
+  const filteredCollections = collections.filter(c => {
+    if (filterDivision !== "all" && c.division_id !== filterDivision) return false;
+    if (searchMobile && !c.mobile.includes(searchMobile) && !c.person_name.toLowerCase().includes(searchMobile.toLowerCase()) && !c.receipt_number?.toLowerCase().includes(searchMobile.toLowerCase())) return false;
+    return true;
+  });
 
   if (!isSuperAdmin) return <Navigate to="/unauthorized" replace />;
 
@@ -224,27 +238,49 @@ export default function SuperAdminCashCollections() {
 
           <TabsContent value="collections">
             <Card>
-              <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <CardTitle className="text-lg">All Collections</CardTitle>
-                  <CardDescription>Collections from all divisions</CardDescription>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <CardTitle className="text-lg">All Collections</CardTitle>
+                    <CardDescription>Collections from all divisions</CardDescription>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                      placeholder="Search name, mobile, receipt..."
+                      value={searchMobile}
+                      onChange={(e) => setSearchMobile(e.target.value)}
+                      className="w-[220px] h-9"
+                    />
+                    <Select value={filterDivision} onValueChange={setFilterDivision}>
+                      <SelectTrigger className="w-[160px] h-9">
+                        <SelectValue placeholder="Division" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Divisions</SelectItem>
+                        {uniqueDivisions.map(([id, name]) => (
+                          <SelectItem key={id} value={id}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-[140px] h-9">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="verified">Verified</SelectItem>
+                        <SelectItem value="submitted">Submitted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs text-muted-foreground ml-auto">{filteredCollections.length} results</span>
+                  </div>
                 </div>
-                <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v)}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Filter status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="verified">Verified</SelectItem>
-                    <SelectItem value="submitted">Submitted</SelectItem>
-                  </SelectContent>
-                </Select>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-                ) : collections.length === 0 ? (
+                ) : filteredCollections.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No collections found</p>
                 ) : (
                   <div className="overflow-x-auto">
@@ -262,7 +298,7 @@ export default function SuperAdminCashCollections() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {collections.map((c) => (
+                        {filteredCollections.map((c) => (
                           <TableRow key={c.id}>
                             <TableCell className="font-mono text-xs">{c.receipt_number}</TableCell>
                             <TableCell>
@@ -336,7 +372,7 @@ export default function SuperAdminCashCollections() {
                 <CardContent>
                   {isLoading ? (
                     <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-                  ) : collections.length === 0 ? (
+                  ) : filteredCollections.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">No data</p>
                   ) : (
                     <div className="overflow-x-auto">
@@ -354,7 +390,7 @@ export default function SuperAdminCashCollections() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {collections.map((c) => (
+                          {filteredCollections.map((c) => (
                             <TableRow key={c.id}>
                               <TableCell className="font-mono text-xs">{c.receipt_number}</TableCell>
                               <TableCell className="text-xs">{c.divisions?.name || "—"}</TableCell>
