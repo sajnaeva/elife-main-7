@@ -330,9 +330,14 @@ export function AgentWorkLog({ agent }: AgentWorkLogProps) {
 
                 {daysInMonth.map((day) => {
                   const dateStr = format(day, "yyyy-MM-dd");
+                  const isFuture = day > new Date();
+                  if (isFuture) {
+                    return <div key={dateStr} className="h-9" />;
+                  }
                   const hasLog = logsMap.has(dateStr);
                   const isSelected = isSameDay(day, selectedDate);
                   const isTodayDate = isToday(day);
+                  const isPast = !isTodayDate;
 
                   return (
                     <button
@@ -350,8 +355,11 @@ export function AgentWorkLog({ agent }: AgentWorkLogProps) {
                           ? "bg-primary text-primary-foreground"
                           : isTodayDate
                           ? "bg-accent text-accent-foreground"
+                          : isPast && hasLog
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                          : isPast && !hasLog
+                          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                           : "hover:bg-muted",
-                        hasLog && !isSelected && "font-bold"
                       )}
                     >
                       {format(day, "d")}
@@ -359,7 +367,7 @@ export function AgentWorkLog({ agent }: AgentWorkLogProps) {
                         <span
                           className={cn(
                             "absolute bottom-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full",
-                            isSelected ? "bg-primary-foreground" : "bg-primary"
+                            isSelected ? "bg-primary-foreground" : "bg-green-600"
                           )}
                         />
                       )}
