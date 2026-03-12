@@ -179,6 +179,16 @@ const App = () => (
               }
             />
 
+            {/* Old Payments Upload - Super Admin only */}
+            <Route
+              path="/super-admin/old-payments"
+              element={
+                <ProtectedRoute requiredRoles={["super_admin"]}>
+                  <OldPaymentsUpload />
+                </ProtectedRoute>
+              }
+            />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
