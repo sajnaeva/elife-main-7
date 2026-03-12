@@ -475,6 +475,177 @@ export type Database = {
           },
         ]
       }
+      pennyekart_categories: {
+        Row: {
+          category_type: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          item_count: string | null
+          margin_percentage: number
+          name: string
+          sort_order: number
+          synced_at: string
+        }
+        Insert: {
+          category_type?: string | null
+          icon?: string | null
+          id: string
+          image_url?: string | null
+          is_active?: boolean
+          item_count?: string | null
+          margin_percentage?: number
+          name: string
+          sort_order?: number
+          synced_at?: string
+        }
+        Update: {
+          category_type?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          item_count?: string | null
+          margin_percentage?: number
+          name?: string
+          sort_order?: number
+          synced_at?: string
+        }
+        Relationships: []
+      }
+      pennyekart_orders: {
+        Row: {
+          customer_name: string | null
+          customer_phone: string | null
+          delivery_address: string | null
+          id: string
+          items: Json | null
+          payment_method: string | null
+          source_created_at: string | null
+          status: string | null
+          synced_at: string
+          total_amount: number
+        }
+        Insert: {
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_address?: string | null
+          id: string
+          items?: Json | null
+          payment_method?: string | null
+          source_created_at?: string | null
+          status?: string | null
+          synced_at?: string
+          total_amount?: number
+        }
+        Update: {
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_address?: string | null
+          id?: string
+          items?: Json | null
+          payment_method?: string | null
+          source_created_at?: string | null
+          status?: string | null
+          synced_at?: string
+          total_amount?: number
+        }
+        Relationships: []
+      }
+      pennyekart_product_variants: {
+        Row: {
+          id: string
+          is_active: boolean
+          mrp: number
+          price: number
+          product_id: string
+          stock: number
+          synced_at: string
+          variant_label: string | null
+        }
+        Insert: {
+          id: string
+          is_active?: boolean
+          mrp?: number
+          price?: number
+          product_id: string
+          stock?: number
+          synced_at?: string
+          variant_label?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          mrp?: number
+          price?: number
+          product_id?: string
+          stock?: number
+          synced_at?: string
+          variant_label?: string | null
+        }
+        Relationships: []
+      }
+      pennyekart_products: {
+        Row: {
+          category: string
+          coming_soon: boolean
+          discount_rate: number
+          featured_discount_type: string | null
+          featured_discount_value: number
+          id: string
+          is_active: boolean
+          margin_percentage: number | null
+          mrp: number
+          name: string
+          price: number
+          purchase_rate: number
+          section: string | null
+          source_created_at: string | null
+          stock: number
+          synced_at: string
+          wallet_points: number
+        }
+        Insert: {
+          category?: string
+          coming_soon?: boolean
+          discount_rate?: number
+          featured_discount_type?: string | null
+          featured_discount_value?: number
+          id: string
+          is_active?: boolean
+          margin_percentage?: number | null
+          mrp?: number
+          name: string
+          price?: number
+          purchase_rate?: number
+          section?: string | null
+          source_created_at?: string | null
+          stock?: number
+          synced_at?: string
+          wallet_points?: number
+        }
+        Update: {
+          category?: string
+          coming_soon?: boolean
+          discount_rate?: number
+          featured_discount_type?: string | null
+          featured_discount_value?: number
+          id?: string
+          is_active?: boolean
+          margin_percentage?: number | null
+          mrp?: number
+          name?: string
+          price?: number
+          purchase_rate?: number
+          section?: string | null
+          source_created_at?: string | null
+          stock?: number
+          synced_at?: string
+          wallet_points?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
