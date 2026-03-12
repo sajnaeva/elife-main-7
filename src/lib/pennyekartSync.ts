@@ -92,6 +92,14 @@ export async function syncPennyekartData(): Promise<SyncResult> {
         delivery_address: o.delivery_address,
         source_created_at: o.created_at,
         synced_at: now,
+        raw_data: o,
+        collected_amount: o.collected_amount || o.total_amount || 0,
+        godown: o.godown || o.warehouse || '',
+        panchayath_name: o.panchayath_name || o.panchayath || '',
+        ward: o.ward || '',
+        district: o.district || '',
+        cost_amount: o.cost_amount || o.purchase_cost || 0,
+        profit_amount: o.profit_amount || o.profit || 0,
       })),
       { onConflict: 'id' }
     );
