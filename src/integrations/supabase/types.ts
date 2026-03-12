@@ -516,40 +516,64 @@ export type Database = {
       }
       pennyekart_orders: {
         Row: {
+          collected_amount: number
+          cost_amount: number
           customer_name: string | null
           customer_phone: string | null
           delivery_address: string | null
+          district: string | null
+          godown: string | null
           id: string
           items: Json | null
+          panchayath_name: string | null
           payment_method: string | null
+          profit_amount: number
+          raw_data: Json | null
           source_created_at: string | null
           status: string | null
           synced_at: string
           total_amount: number
+          ward: string | null
         }
         Insert: {
+          collected_amount?: number
+          cost_amount?: number
           customer_name?: string | null
           customer_phone?: string | null
           delivery_address?: string | null
+          district?: string | null
+          godown?: string | null
           id: string
           items?: Json | null
+          panchayath_name?: string | null
           payment_method?: string | null
+          profit_amount?: number
+          raw_data?: Json | null
           source_created_at?: string | null
           status?: string | null
           synced_at?: string
           total_amount?: number
+          ward?: string | null
         }
         Update: {
+          collected_amount?: number
+          cost_amount?: number
           customer_name?: string | null
           customer_phone?: string | null
           delivery_address?: string | null
+          district?: string | null
+          godown?: string | null
           id?: string
           items?: Json | null
+          panchayath_name?: string | null
           payment_method?: string | null
+          profit_amount?: number
+          raw_data?: Json | null
           source_created_at?: string | null
           status?: string | null
           synced_at?: string
           total_amount?: number
+          ward?: string | null
         }
         Relationships: []
       }
