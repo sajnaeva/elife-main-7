@@ -409,6 +409,30 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_commission_rates: {
+        Row: {
+          id: string
+          percentage: number
+          role: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          percentage?: number
+          role: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          percentage?: number
+          role?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       pennyekart_agents: {
         Row: {
           created_at: string | null
