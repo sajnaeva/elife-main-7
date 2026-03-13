@@ -201,6 +201,16 @@ const App = () => (
               }
             />
 
+            {/* Pennyekart Payouts - Super Admin only */}
+            <Route
+              path="/admin/payouts"
+              element={
+                <ProtectedRoute requiredRoles={["super_admin"]}>
+                  <Payouts />
+                </ProtectedRoute>
+              }
+            />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
