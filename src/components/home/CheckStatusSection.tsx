@@ -267,6 +267,29 @@ export function CheckStatusSection() {
                   </Card>
                 )}
 
+                {/* Wallet Balance */}
+                {agentInfo && walletBalance !== null && (
+                  <Card className="border-primary/20">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Wallet className="h-4 w-4 text-primary" />
+                        Wallet Balance
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Available Balance</p>
+                          <p className="font-medium text-sm">{agentInfo.name}</p>
+                        </div>
+                        <span className="text-2xl font-bold text-primary">
+                          ₹{walletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Agent Info + Work Log */}
                 {agentInfo && (
                   <AgentWorkLog agent={agentInfo} />
