@@ -70,6 +70,53 @@ export type Database = {
           },
         ]
       }
+      agent_wallet_transactions: {
+        Row: {
+          agent_id: string
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          from_date: string | null
+          id: string
+          to_date: string | null
+          transaction_type: string
+          transfer_date: string
+        }
+        Insert: {
+          agent_id: string
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          from_date?: string | null
+          id?: string
+          to_date?: string | null
+          transaction_type?: string
+          transfer_date: string
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          from_date?: string | null
+          id?: string
+          to_date?: string | null
+          transaction_type?: string
+          transfer_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_wallet_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "pennyekart_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_work_logs: {
         Row: {
           agent_id: string
