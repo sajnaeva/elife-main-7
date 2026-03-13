@@ -392,6 +392,7 @@ export default function Payouts() {
         <Tabs defaultValue="calculate" className="space-y-4">
           <TabsList>
             <TabsTrigger value="calculate"><Calculator className="h-4 w-4 mr-1" /> Calculate Payouts</TabsTrigger>
+            <TabsTrigger value="wallets"><Wallet className="h-4 w-4 mr-1" /> Agent Wallets</TabsTrigger>
             <TabsTrigger value="settings"><Percent className="h-4 w-4 mr-1" /> Commission Settings</TabsTrigger>
           </TabsList>
 
