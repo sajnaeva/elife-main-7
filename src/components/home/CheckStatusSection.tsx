@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Phone, CheckCircle2, XCircle, Loader2, IndianRupee, User, MapPin, Building2, Users } from "lucide-react";
+import { Search, Phone, CheckCircle2, XCircle, Loader2, IndianRupee, User, MapPin, Building2, Users, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,7 +60,7 @@ export function CheckStatusSection() {
   const [collections, setCollections] = useState<CollectionResult[]>([]);
   const [oldPayments, setOldPayments] = useState<OldPaymentResult[]>([]);
   const [agentInfo, setAgentInfo] = useState<AgentResult | null>(null);
-
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const handleSearch = async () => {
     const cleaned = mobile.replace(/\D/g, "");
     if (cleaned.length < 10) return;
@@ -111,6 +111,21 @@ export function CheckStatusSection() {
 
       setAgentInfo(agentRes.data && agentRes.data.length > 0 ? (agentRes.data[0] as unknown as AgentResult) : null);
       setOldPayments((oldPayRes.data as unknown as OldPaymentResult[]) || []);
+
+      // Fetch wallet balance if agent found
+      if (agentRes.data && agentRes.data.length > 0) {
+        const agentId = agentRes.data[0].id;
+        const { data: walletData } = await supabase
+          .from("agent_wallet_transactions")
+          .select("amount")
+          .eq("agent_id", agentId);
+        if (walletData) {
+          const balance = walletData.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+          setWalletBalance(balance);
+        }
+      } else {
+        setWalletBalance(null);
+      }
     } catch (err) {
       console.error("Search error:", err);
     } finally {
@@ -248,6 +263,29 @@ export function CheckStatusSection() {
                           )}
                         </div>
                       ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Wallet Balance */}
+                {agentInfo && walletBalance !== null && (
+                  <Card className="border-primary/20">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Wallet className="h-4 w-4 text-primary" />
+                        Wallet Balance
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Available Balance</p>
+                          <p className="font-medium text-sm">{agentInfo.name}</p>
+                        </div>
+                        <span className="text-2xl font-bold text-primary">
+                          ₹{walletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </CardContent>
                   </Card>
                 )}

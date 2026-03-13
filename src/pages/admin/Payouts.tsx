@@ -15,10 +15,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, Navigate } from "react-router-dom";
 import {
-  ArrowLeft, Loader2, IndianRupee, Save, Calculator, Users, Percent,
+  ArrowLeft, Loader2, IndianRupee, Save, Calculator, Users, Percent, Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ROLE_LABELS, ROLE_HIERARCHY, type AgentRole } from "@/hooks/usePennyekartAgents";
+import { AgentWalletsTab } from "@/components/payouts/AgentWalletsTab";
 
 interface CommissionRate {
   id: string;
@@ -391,6 +392,7 @@ export default function Payouts() {
         <Tabs defaultValue="calculate" className="space-y-4">
           <TabsList>
             <TabsTrigger value="calculate"><Calculator className="h-4 w-4 mr-1" /> Calculate Payouts</TabsTrigger>
+            <TabsTrigger value="wallets"><Wallet className="h-4 w-4 mr-1" /> Agent Wallets</TabsTrigger>
             <TabsTrigger value="settings"><Percent className="h-4 w-4 mr-1" /> Commission Settings</TabsTrigger>
           </TabsList>
 
@@ -433,6 +435,24 @@ export default function Payouts() {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Agent Wallets Tab */}
+          <TabsContent value="wallets" className="space-y-4">
+            <AgentWalletsTab
+              payouts={filteredPayouts.map((p) => ({
+                agent_id: p.agent_id,
+                agent_name: p.agent_name,
+                agent_mobile: p.agent_mobile,
+                role: p.role,
+                panchayath_name: p.panchayath_name,
+                ward: p.ward,
+                commission_amount: p.commission_amount,
+              }))}
+              fromDate={fromDate}
+              toDate={toDate}
+              fmt={fmt}
+            />
           </TabsContent>
 
           {/* Calculate Payouts Tab */}
