@@ -111,6 +111,21 @@ export function CheckStatusSection() {
 
       setAgentInfo(agentRes.data && agentRes.data.length > 0 ? (agentRes.data[0] as unknown as AgentResult) : null);
       setOldPayments((oldPayRes.data as unknown as OldPaymentResult[]) || []);
+
+      // Fetch wallet balance if agent found
+      if (agentRes.data && agentRes.data.length > 0) {
+        const agentId = agentRes.data[0].id;
+        const { data: walletData } = await supabase
+          .from("agent_wallet_transactions")
+          .select("amount")
+          .eq("agent_id", agentId);
+        if (walletData) {
+          const balance = walletData.reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+          setWalletBalance(balance);
+        }
+      } else {
+        setWalletBalance(null);
+      }
     } catch (err) {
       console.error("Search error:", err);
     } finally {
