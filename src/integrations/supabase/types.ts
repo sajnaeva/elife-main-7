@@ -520,19 +520,24 @@ export type Database = {
           cost_amount: number
           customer_name: string | null
           customer_phone: string | null
+          delivery: string | null
           delivery_address: string | null
           district: string | null
           godown: string | null
+          godown_type: string | null
           id: string
           items: Json | null
+          net_profit: number
           panchayath_name: string | null
           payment_method: string | null
           profit_amount: number
           raw_data: Json | null
+          self_pickup: string | null
           source_created_at: string | null
           status: string | null
           synced_at: string
           total_amount: number
+          uploaded_at: string | null
           ward: string | null
         }
         Insert: {
@@ -540,19 +545,24 @@ export type Database = {
           cost_amount?: number
           customer_name?: string | null
           customer_phone?: string | null
+          delivery?: string | null
           delivery_address?: string | null
           district?: string | null
           godown?: string | null
+          godown_type?: string | null
           id: string
           items?: Json | null
+          net_profit?: number
           panchayath_name?: string | null
           payment_method?: string | null
           profit_amount?: number
           raw_data?: Json | null
+          self_pickup?: string | null
           source_created_at?: string | null
           status?: string | null
           synced_at?: string
           total_amount?: number
+          uploaded_at?: string | null
           ward?: string | null
         }
         Update: {
@@ -560,19 +570,24 @@ export type Database = {
           cost_amount?: number
           customer_name?: string | null
           customer_phone?: string | null
+          delivery?: string | null
           delivery_address?: string | null
           district?: string | null
           godown?: string | null
+          godown_type?: string | null
           id?: string
           items?: Json | null
+          net_profit?: number
           panchayath_name?: string | null
           payment_method?: string | null
           profit_amount?: number
           raw_data?: Json | null
+          self_pickup?: string | null
           source_created_at?: string | null
           status?: string | null
           synced_at?: string
           total_amount?: number
+          uploaded_at?: string | null
           ward?: string | null
         }
         Relationships: []
