@@ -427,8 +427,8 @@ export function BulkAgentFormDialog({
 
   const singleParentRole = getParentRole(selectedSingleRole);
   const bulkParentRole = getParentRole(selectedBulkRole);
-  const singleNeedsParent = selectedSingleRole !== "team_leader";
-  const bulkNeedsParent = selectedBulkRole !== "team_leader";
+  const singleNeedsParent = selectedSingleRole !== "team_leader" && selectedSingleRole !== "scode";
+  const bulkNeedsParent = selectedBulkRole !== "team_leader" && selectedBulkRole !== "scode";
 
   // Get ward options for all responsible panchayaths (for Team Leader viewing coordinator wards)
   const getWardsForPanchayath = (panchayathId: string) => {
