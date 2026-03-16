@@ -104,32 +104,67 @@ export function AgentDetailsPanel({
         </Button>
       </CardHeader>
       <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6">
-        {/* Basic Info */}
-        <div className="space-y-2 sm:space-y-3">
-          <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
-            <h3 className="text-lg sm:text-xl font-semibold">{agent.name}</h3>
-            <Badge className={cn("text-xs", ROLE_COLORS[agent.role])}>
-              {ROLE_LABELS[agent.role]}
-            </Badge>
-          </div>
-
-          <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-              <span>{agent.mobile}</span>
+        {/* Profile Header with Avatar */}
+        <div className="flex items-start gap-3">
+          <Avatar className={cn("h-14 w-14 text-xl font-bold", AVATAR_BG[agent.role])}>
+            <AvatarFallback className={AVATAR_BG[agent.role]}>
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg sm:text-xl font-semibold truncate">{agent.name}</h3>
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              <Badge className={cn("text-xs", ROLE_COLORS[agent.role])}>
+                {ROLE_LABELS[agent.role]}
+              </Badge>
+              {!agent.is_active && (
+                <Badge variant="destructive" className="text-xs">Inactive</Badge>
+              )}
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-              <span className="truncate">{agent.panchayath?.name || "Unknown"}</span>
-            </div>
-            {agent.ward !== "N/A" && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                <span>Ward: {agent.ward}</span>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Contact details */}
+        <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span>{agent.mobile}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="truncate">{agent.panchayath?.name || "Unknown"}</span>
+          </div>
+          {agent.ward !== "N/A" && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span>Ward: {agent.ward}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span>Joined {new Date(agent.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</span>
+          </div>
+        </div>
+
+        {/* Responsible Areas */}
+        {responsiblePanchayathNames.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                <Network className="h-3.5 w-3.5" />
+                Responsible Panchayaths ({responsiblePanchayathNames.length})
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {responsiblePanchayathNames.map((name, i) => (
+                  <Badge key={i} variant="outline" className="text-xs">
+                    {name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         <Separator />
 
