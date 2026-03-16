@@ -15,12 +15,22 @@ async function validateAuth(req: Request, supabase: any) {
       const decoded = JSON.parse(atob(payload));
       if (!decoded.exp || decoded.exp <= Date.now()) return null;
       if (!decoded.admin_id || !decoded.division_id) return null;
+
+      // Fetch admin record to get cash_collection_division_ids
+      const { data: adminRecord } = await supabase
+        .from("admins")
+        .select("full_name, is_read_only, cash_collection_enabled, cash_collection_division_ids")
+        .eq("id", decoded.admin_id)
+        .single();
+
       return {
         adminId: decoded.admin_id,
         divisionId: decoded.division_id,
-        adminName: decoded.full_name || "Admin",
-        isReadOnly: decoded.is_read_only || false,
+        adminName: adminRecord?.full_name || decoded.full_name || "Admin",
+        isReadOnly: adminRecord?.is_read_only || false,
         isSuperAdmin: false,
+        cashCollectionEnabled: adminRecord?.cash_collection_enabled || false,
+        cashCollectionDivisionIds: adminRecord?.cash_collection_division_ids || [],
       };
     } catch {
       // fall through to JWT check
@@ -60,6 +70,8 @@ async function validateAuth(req: Request, supabase: any) {
         adminName: profile?.full_name || userData.user.email || "Super Admin",
         isReadOnly: false,
         isSuperAdmin: true,
+        cashCollectionEnabled: true,
+        cashCollectionDivisionIds: [],
       };
     } catch {
       return null;
@@ -89,6 +101,19 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
+    const requestedDivisionId = url.searchParams.get("division_id");
+
+    // Check if admin has access to the requested division for cash collections
+    if (!admin.isSuperAdmin && requestedDivisionId && requestedDivisionId !== admin.divisionId) {
+      const hasCashAccess = admin.cashCollectionEnabled && 
+        admin.cashCollectionDivisionIds.includes(requestedDivisionId);
+      if (!hasCashAccess) {
+        return new Response(JSON.stringify({ error: "No cash collection access for this division" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // SEARCH: Find members/registrations by mobile number
     if (req.method === "GET" && action === "search_mobile") {

@@ -104,6 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             access_all_divisions: data.admin.access_all_divisions,
             additional_division_ids: data.admin.additional_division_ids,
             is_read_only: data.admin.is_read_only,
+            cash_collection_enabled: data.admin.cash_collection_enabled,
+            cash_collection_division_ids: data.admin.cash_collection_division_ids,
           };
           setAdminData(updatedAdmin);
           localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(updatedAdmin));
