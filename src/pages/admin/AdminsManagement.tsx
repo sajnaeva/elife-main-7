@@ -94,7 +94,7 @@ export default function AdminsManagement() {
       .join("");
   };
 
-  const handleCreate = async (data: { fullName: string; phone: string; password: string; divisionId: string; isReadOnly: boolean; cashCollectionEnabled: boolean }) => {
+  const handleCreate = async (data: { fullName: string; phone: string; password: string; divisionId: string; isReadOnly: boolean; cashCollectionEnabled: boolean; cashCollectionDivisionIds: string[] }) => {
     if (!data.phone || data.phone.length < 10) throw new Error("Please enter a valid phone number");
     if (!data.password || data.password.length < 6) throw new Error("Password must be at least 6 characters");
 
