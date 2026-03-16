@@ -128,7 +128,7 @@ export default function AdminsManagement() {
       if (existing) throw new Error("An admin with this phone number already exists");
     }
 
-    const updateData: any = { full_name: data.fullName, phone, division_id: data.divisionId, is_read_only: data.isReadOnly, cash_collection_enabled: data.cashCollectionEnabled };
+    const updateData: any = { full_name: data.fullName, phone, division_id: data.divisionId, is_read_only: data.isReadOnly, cash_collection_enabled: data.cashCollectionEnabled, cash_collection_division_ids: data.cashCollectionDivisionIds };
     if (data.password) {
       if (data.password.length < 6) throw new Error("Password must be at least 6 characters");
       updateData.password_hash = await hashPassword(data.password);
