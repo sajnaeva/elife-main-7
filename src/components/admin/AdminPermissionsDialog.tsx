@@ -152,158 +152,158 @@ export function AdminPermissionsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-hidden">
-          {/* Primary Division (read-only) */}
-          <div className="rounded-lg border p-3 bg-muted/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Primary Division</span>
+        <ScrollArea className="flex-1 max-h-[60vh] pr-3">
+          <div className="space-y-4">
+            {/* Primary Division (read-only) */}
+            <div className="rounded-lg border p-3 bg-muted/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Primary Division</span>
+                </div>
+                <Badge variant="default" className="text-xs">
+                  {primaryDivision?.name || "Unknown"}
+                </Badge>
               </div>
-              <Badge variant="default" className="text-xs">
-                {primaryDivision?.name || "Unknown"}
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              This is the admin's assigned division and cannot be changed here.
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Access All Divisions Toggle */}
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="space-y-0.5">
-              <Label htmlFor="access-all" className="text-sm font-medium">
-                Access All Divisions
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Grant full access to every division in the system
+              <p className="text-xs text-muted-foreground mt-1">
+                This is the admin's assigned division and cannot be changed here.
               </p>
             </div>
-            <Switch
-              id="access-all"
-              checked={accessAll}
-              onCheckedChange={setAccessAll}
-            />
-          </div>
 
-          {/* Individual Division Selection */}
-          {!accessAll && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">
-                  Additional Division Access
-                </Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={handleSelectAll}
-                >
-                  {selectedDivisionIds.length === otherDivisions.length
-                    ? "Deselect All"
-                    : "Select All"}
-                </Button>
+            <Separator />
+
+            {/* Division Access Section */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                Division Access
+              </h4>
+
+              {/* Access All Divisions Toggle */}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-0.5">
+                  <Label htmlFor="access-all" className="text-sm font-medium">
+                    Access All Divisions
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Grant full access to every division
+                  </p>
+                </div>
+                <Switch
+                  id="access-all"
+                  checked={accessAll}
+                  onCheckedChange={setAccessAll}
+                />
               </div>
-              <ScrollArea className="h-[200px] rounded-lg border p-2">
-                <div className="space-y-1">
-                  {otherDivisions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No other divisions available
+
+              {/* Individual Division Selection */}
+              {!accessAll && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Additional Divisions</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={handleSelectAll}
+                    >
+                      {selectedDivisionIds.length === otherDivisions.length
+                        ? "Deselect All"
+                        : "Select All"}
+                    </Button>
+                  </div>
+                  <div className="rounded-lg border p-2 space-y-1 max-h-[160px] overflow-y-auto">
+                    {otherDivisions.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No other divisions available
+                      </p>
+                    ) : (
+                      otherDivisions.map((division) => (
+                        <label
+                          key={division.id}
+                          className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-accent cursor-pointer transition-colors"
+                        >
+                          <Checkbox
+                            checked={selectedDivisionIds.includes(division.id)}
+                            onCheckedChange={() => handleToggleDivision(division.id)}
+                          />
+                          <span className="text-sm">{division.name}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  {selectedDivisionIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedDivisionIds.length} additional division
+                      {selectedDivisionIds.length !== 1 ? "s" : ""} selected
                     </p>
-                  ) : (
-                    otherDivisions.map((division) => (
+                  )}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Cash Collection Section */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <IndianRupee className="h-4 w-4 text-primary" />
+                Cash Collection
+              </h4>
+
+              {admin.cash_collection_enabled ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      Select divisions for cash collection access
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={handleSelectAllCashCollection}
+                    >
+                      {cashCollectionDivisionIds.length === divisions.length
+                        ? "Deselect All"
+                        : "Select All"}
+                    </Button>
+                  </div>
+                  <div className="rounded-lg border p-2 space-y-1 max-h-[200px] overflow-y-auto">
+                    {divisions.map((division) => (
                       <label
                         key={division.id}
                         className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-accent cursor-pointer transition-colors"
                       >
                         <Checkbox
-                          checked={selectedDivisionIds.includes(division.id)}
-                          onCheckedChange={() => handleToggleDivision(division.id)}
+                          checked={cashCollectionDivisionIds.includes(division.id)}
+                          onCheckedChange={() => handleToggleCashCollectionDivision(division.id)}
                         />
                         <span className="text-sm">{division.name}</span>
+                        {division.id === admin.division_id && (
+                          <Badge variant="secondary" className="text-[10px] h-5">Primary</Badge>
+                        )}
                       </label>
-                    ))
+                    ))}
+                  </div>
+                  {cashCollectionDivisionIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {cashCollectionDivisionIds.length} division
+                      {cashCollectionDivisionIds.length !== 1 ? "s" : ""} selected
+                    </p>
                   )}
                 </div>
-              </ScrollArea>
-              {selectedDivisionIds.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {selectedDivisionIds.length} additional division
-                  {selectedDivisionIds.length !== 1 ? "s" : ""} selected
-                </p>
+              ) : (
+                <div className="rounded-lg border p-3 bg-muted/50">
+                  <span className="text-sm text-muted-foreground">
+                    Cash collection is disabled for this admin. Enable it in admin settings first.
+                  </span>
+                </div>
               )}
             </div>
-          )}
-
-          <Separator />
-
-          {/* Cash Collection Division Access */}
-          {admin.cash_collection_enabled && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <IndianRupee className="h-4 w-4 text-primary" />
-                  <Label className="text-sm font-medium">
-                    Cash Collection Divisions
-                  </Label>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={handleSelectAllCashCollection}
-                >
-                  {cashCollectionDivisionIds.length === divisions.length
-                    ? "Deselect All"
-                    : "Select All"}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Select divisions this admin can manage cash collections for
-              </p>
-              <ScrollArea className="h-[180px] rounded-lg border p-2">
-                <div className="space-y-1">
-                  {divisions.map((division) => (
-                    <label
-                      key={division.id}
-                      className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <Checkbox
-                        checked={cashCollectionDivisionIds.includes(division.id)}
-                        onCheckedChange={() => handleToggleCashCollectionDivision(division.id)}
-                      />
-                      <span className="text-sm">{division.name}</span>
-                      {division.id === admin.division_id && (
-                        <Badge variant="secondary" className="text-[10px] h-5">Primary</Badge>
-                      )}
-                    </label>
-                  ))}
-                </div>
-              </ScrollArea>
-              {cashCollectionDivisionIds.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {cashCollectionDivisionIds.length} division
-                  {cashCollectionDivisionIds.length !== 1 ? "s" : ""} selected for cash collection
-                </p>
-              )}
-            </div>
-          )}
-
-          {admin.cash_collection_enabled === false && (
-            <div className="rounded-lg border p-3 bg-muted/50">
-              <div className="flex items-center gap-2">
-                <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  Cash collection is disabled for this admin. Enable it in the admin settings first.
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        </ScrollArea>
 
         <DialogFooter className="gap-2 sm:gap-0 mt-4">
           <Button
