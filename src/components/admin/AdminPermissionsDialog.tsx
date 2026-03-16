@@ -68,6 +68,14 @@ export function AdminPermissionsDialog({
     );
   };
 
+  const handleToggleCashCollectionDivision = (divisionId: string) => {
+    setCashCollectionDivisionIds((prev) =>
+      prev.includes(divisionId)
+        ? prev.filter((id) => id !== divisionId)
+        : [...prev, divisionId]
+    );
+  };
+
   const handleSelectAll = () => {
     const otherDivisionIds = divisions
       .filter((d) => d.id !== admin?.division_id)
@@ -77,6 +85,15 @@ export function AdminPermissionsDialog({
       setSelectedDivisionIds([]);
     } else {
       setSelectedDivisionIds(otherDivisionIds);
+    }
+  };
+
+  const handleSelectAllCashCollection = () => {
+    const allIds = divisions.map((d) => d.id);
+    if (cashCollectionDivisionIds.length === allIds.length) {
+      setCashCollectionDivisionIds([]);
+    } else {
+      setCashCollectionDivisionIds(allIds);
     }
   };
 
