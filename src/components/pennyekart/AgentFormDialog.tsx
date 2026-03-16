@@ -179,11 +179,11 @@ export function AgentFormDialog({ open, onOpenChange, agent, onSuccess }: AgentF
   }, [open, agent, form]);
 
   const onSubmit = async (values: AgentFormValues) => {
-    // Team leaders don't have parents
-    if (values.role === "team_leader") {
+    // Scode and Team leaders don't have parents
+    if (values.role === "team_leader" || values.role === "scode") {
       values.parent_agent_id = null;
     } else {
-      // Non-team-leaders don't have responsible panchayaths
+      // Non-top-level roles don't have responsible panchayaths
       values.responsible_panchayath_ids = [];
     }
 
