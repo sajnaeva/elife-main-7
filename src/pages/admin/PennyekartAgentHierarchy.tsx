@@ -323,6 +323,32 @@ export default function PennyekartAgentHierarchy() {
           </CardContent>
         </Card>
 
+        {/* S-Code Leaders - Profile Cards */}
+        {(() => {
+          const scodeAgents = agents.filter(a => a.role === "scode");
+          if (scodeAgents.length === 0) return null;
+          return (
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-sm sm:text-base font-semibold mb-3 flex items-center gap-2">
+                <Users className="h-4 w-4 text-rose-500" />
+                S-Code Leaders
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {scodeAgents.map(agent => (
+                  <AgentProfileCard
+                    key={agent.id}
+                    agent={agent}
+                    allAgents={agents}
+                    panchayaths={panchayaths}
+                    onClick={() => setSelectedAgent(agent)}
+                    isSelected={selectedAgent?.id === agent.id}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Hierarchy Tree */}
@@ -364,6 +390,7 @@ export default function PennyekartAgentHierarchy() {
               <AgentDetailsPanel
                 agent={selectedAgent}
                 allAgents={agents}
+                panchayaths={panchayaths}
                 onEdit={() => handleEditAgent(selectedAgent)}
                 onDelete={() => handleDeleteAgent(selectedAgent)}
                 onAddChild={() => handleAddChildAgent(selectedAgent)}
