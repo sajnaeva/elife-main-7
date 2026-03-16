@@ -39,6 +39,7 @@ import {
 interface AgentDetailsPanelProps {
   agent: PennyekartAgent;
   allAgents: PennyekartAgent[];
+  panchayaths?: { id: string; name: string }[];
   onEdit: () => void;
   onDelete: () => void;
   onAddChild: () => void;
