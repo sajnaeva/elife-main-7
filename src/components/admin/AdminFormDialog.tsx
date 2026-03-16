@@ -64,6 +64,7 @@ export function AdminFormDialog({
   const [divisionId, setDivisionId] = useState(initialData?.divisionId || "");
   const [isReadOnly, setIsReadOnly] = useState(initialData?.isReadOnly ?? false);
   const [cashCollectionEnabled, setCashCollectionEnabled] = useState(initialData?.cashCollectionEnabled ?? false);
+  const [cashCollectionDivisionIds, setCashCollectionDivisionIds] = useState<string[]>(initialData?.cashCollectionDivisionIds ?? []);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -74,6 +75,7 @@ export function AdminFormDialog({
     setDivisionId("");
     setIsReadOnly(false);
     setCashCollectionEnabled(false);
+    setCashCollectionDivisionIds([]);
     setError("");
   };
 
@@ -85,10 +87,18 @@ export function AdminFormDialog({
       setDivisionId(initialData.divisionId);
       setIsReadOnly(initialData.isReadOnly ?? false);
       setCashCollectionEnabled(initialData.cashCollectionEnabled ?? false);
+      setCashCollectionDivisionIds(initialData.cashCollectionDivisionIds ?? []);
       setPassword("");
       setError("");
     }
   }, [open, initialData]);
+
+  // Auto-add primary division when cash collection is enabled and no divisions selected
+  useEffect(() => {
+    if (cashCollectionEnabled && cashCollectionDivisionIds.length === 0 && divisionId) {
+      setCashCollectionDivisionIds([divisionId]);
+    }
+  }, [cashCollectionEnabled, divisionId]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) resetForm();
