@@ -37,6 +37,7 @@ interface AdminFormDialogProps {
     divisionId: string;
     isReadOnly: boolean;
     cashCollectionEnabled: boolean;
+    cashCollectionDivisionIds: string[];
   }) => Promise<void>;
   mode: "create" | "edit";
   initialData?: {
@@ -45,6 +46,7 @@ interface AdminFormDialogProps {
     divisionId: string;
     isReadOnly: boolean;
     cashCollectionEnabled: boolean;
+    cashCollectionDivisionIds: string[];
   };
 }
 
@@ -62,6 +64,7 @@ export function AdminFormDialog({
   const [divisionId, setDivisionId] = useState(initialData?.divisionId || "");
   const [isReadOnly, setIsReadOnly] = useState(initialData?.isReadOnly ?? false);
   const [cashCollectionEnabled, setCashCollectionEnabled] = useState(initialData?.cashCollectionEnabled ?? false);
+  const [cashCollectionDivisionIds, setCashCollectionDivisionIds] = useState<string[]>(initialData?.cashCollectionDivisionIds ?? []);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,6 +75,7 @@ export function AdminFormDialog({
     setDivisionId("");
     setIsReadOnly(false);
     setCashCollectionEnabled(false);
+    setCashCollectionDivisionIds([]);
     setError("");
   };
 
@@ -83,10 +87,18 @@ export function AdminFormDialog({
       setDivisionId(initialData.divisionId);
       setIsReadOnly(initialData.isReadOnly ?? false);
       setCashCollectionEnabled(initialData.cashCollectionEnabled ?? false);
+      setCashCollectionDivisionIds(initialData.cashCollectionDivisionIds ?? []);
       setPassword("");
       setError("");
     }
   }, [open, initialData]);
+
+  // Auto-add primary division when cash collection is enabled and no divisions selected
+  useEffect(() => {
+    if (cashCollectionEnabled && cashCollectionDivisionIds.length === 0 && divisionId) {
+      setCashCollectionDivisionIds([divisionId]);
+    }
+  }, [cashCollectionEnabled, divisionId]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) resetForm();
@@ -99,7 +111,7 @@ export function AdminFormDialog({
     setIsSubmitting(true);
 
     try {
-      await onSubmit({ fullName, phone, password, divisionId, isReadOnly, cashCollectionEnabled });
+      await onSubmit({ fullName, phone, password, divisionId, isReadOnly, cashCollectionEnabled, cashCollectionDivisionIds: cashCollectionEnabled ? cashCollectionDivisionIds : [] });
       handleOpenChange(false);
     } catch (err: any) {
       setError(err.message || `Failed to ${mode} admin`);
@@ -211,6 +223,34 @@ export function AdminFormDialog({
                 onCheckedChange={setCashCollectionEnabled}
               />
             </div>
+
+            {cashCollectionEnabled && (
+              <div className="space-y-2 rounded-lg border p-3">
+                <Label>Cash Collection Divisions</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Select which divisions this admin can collect cash for
+                </p>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {divisions.map((division) => (
+                    <label key={division.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cashCollectionDivisionIds.includes(division.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCashCollectionDivisionIds(prev => [...prev, division.id]);
+                          } else {
+                            setCashCollectionDivisionIds(prev => prev.filter(id => id !== division.id));
+                          }
+                        }}
+                        className="rounded border-input"
+                      />
+                      {division.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
