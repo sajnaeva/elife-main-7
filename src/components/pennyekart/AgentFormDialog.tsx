@@ -392,7 +392,7 @@ export function AgentFormDialog({ open, onOpenChange, agent, onSuccess }: AgentF
                   />
                 )}
 
-                {selectedRole === "team_leader" && (
+                {(selectedRole === "team_leader" || selectedRole === "scode") && (
                   <FormField
                     control={form.control}
                     name="responsible_panchayath_ids"

@@ -827,7 +827,7 @@ function SingleFormContent({
               Responsibility Scope
             </div>
 
-            {selectedRole === "team_leader" && (
+            {(selectedRole === "team_leader" || selectedRole === "scode") && (
               <FormField
                 control={form.control}
                 name="responsible_panchayath_ids"
