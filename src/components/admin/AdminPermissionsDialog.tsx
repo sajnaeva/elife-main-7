@@ -152,7 +152,7 @@ export function AdminPermissionsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 max-h-[60vh] pr-3">
+        <div className="flex-1 overflow-y-auto max-h-[55vh] pr-2" style={{ scrollbarWidth: 'thin' }}>
           <div className="space-y-4">
             {/* Primary Division (read-only) */}
             <div className="rounded-lg border p-3 bg-muted/50">
@@ -303,7 +303,7 @@ export function AdminPermissionsDialog({
               )}
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="gap-2 sm:gap-0 mt-4">
           <Button
