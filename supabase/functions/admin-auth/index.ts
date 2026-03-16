@@ -43,7 +43,7 @@ serve(async (req) => {
 
         const { data: admin, error: adminError } = await supabase
           .from("admins")
-          .select("id, user_id, division_id, full_name, access_all_divisions, additional_division_ids, is_active, is_read_only, cash_collection_enabled")
+          .select("id, user_id, division_id, full_name, access_all_divisions, additional_division_ids, is_active, is_read_only, cash_collection_enabled, cash_collection_division_ids")
           .eq("id", decoded.admin_id)
           .single();
 
