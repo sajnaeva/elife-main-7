@@ -14,6 +14,7 @@ interface AdminData {
   additional_division_ids?: string[];
   is_read_only?: boolean;
   cash_collection_enabled?: boolean;
+  cash_collection_division_ids?: string[];
 }
 
 interface AuthContextType {

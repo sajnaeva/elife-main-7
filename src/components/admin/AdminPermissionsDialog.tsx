@@ -32,6 +32,8 @@ interface AdminPermissionsDialogProps {
     division_id: string;
     access_all_divisions?: boolean;
     additional_division_ids?: string[];
+    cash_collection_enabled?: boolean;
+    cash_collection_division_ids?: string[];
   } | null;
   divisions: Division[];
   onSaved: () => void;
