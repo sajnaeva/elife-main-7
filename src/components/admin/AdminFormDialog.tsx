@@ -223,6 +223,34 @@ export function AdminFormDialog({
                 onCheckedChange={setCashCollectionEnabled}
               />
             </div>
+
+            {cashCollectionEnabled && (
+              <div className="space-y-2 rounded-lg border p-3">
+                <Label>Cash Collection Divisions</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Select which divisions this admin can collect cash for
+                </p>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {divisions.map((division) => (
+                    <label key={division.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cashCollectionDivisionIds.includes(division.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCashCollectionDivisionIds(prev => [...prev, division.id]);
+                          } else {
+                            setCashCollectionDivisionIds(prev => prev.filter(id => id !== division.id));
+                          }
+                        }}
+                        className="rounded border-input"
+                      />
+                      {division.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
