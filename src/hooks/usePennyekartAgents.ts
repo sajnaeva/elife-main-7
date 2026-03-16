@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AgentRole = "team_leader" | "coordinator" | "group_leader" | "pro";
+export type AgentRole = "scode" | "team_leader" | "coordinator" | "group_leader" | "pro";
 
 export interface PennyekartAgent {
   id: string;
