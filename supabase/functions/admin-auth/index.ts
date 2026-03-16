@@ -66,6 +66,7 @@ serve(async (req) => {
               additional_division_ids: admin.additional_division_ids,
               is_read_only: admin.is_read_only,
               cash_collection_enabled: admin.cash_collection_enabled,
+              cash_collection_division_ids: admin.cash_collection_division_ids,
             },
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
