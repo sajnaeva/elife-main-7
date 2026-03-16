@@ -48,6 +48,7 @@ export function AdminPermissionsDialog({
 }: AdminPermissionsDialogProps) {
   const [accessAll, setAccessAll] = useState(false);
   const [selectedDivisionIds, setSelectedDivisionIds] = useState<string[]>([]);
+  const [cashCollectionDivisionIds, setCashCollectionDivisionIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -55,6 +56,7 @@ export function AdminPermissionsDialog({
     if (admin) {
       setAccessAll(admin.access_all_divisions ?? false);
       setSelectedDivisionIds(admin.additional_division_ids ?? []);
+      setCashCollectionDivisionIds(admin.cash_collection_division_ids ?? []);
     }
   }, [admin]);
 
