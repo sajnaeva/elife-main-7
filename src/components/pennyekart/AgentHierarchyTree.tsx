@@ -11,6 +11,7 @@ interface AgentHierarchyTreeProps {
 }
 
 const ROLE_COLORS: Record<AgentRole, string> = {
+  scode: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300",
   team_leader: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
   coordinator: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   group_leader: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
