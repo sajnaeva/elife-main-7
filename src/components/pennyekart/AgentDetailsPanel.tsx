@@ -11,8 +11,12 @@ import {
   Edit, 
   Trash2, 
   UserPlus,
-  X
+  X,
+  Network,
+  Calendar,
+  Shield,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { 
   PennyekartAgent, 
