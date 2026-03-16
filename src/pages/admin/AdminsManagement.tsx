@@ -111,6 +111,7 @@ export default function AdminsManagement() {
       full_name: data.fullName,
       is_read_only: data.isReadOnly,
       cash_collection_enabled: data.cashCollectionEnabled,
+      cash_collection_division_ids: data.cashCollectionDivisionIds,
     } as any);
 
     if (error) throw error;
