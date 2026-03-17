@@ -47,6 +47,7 @@ import { AgentHierarchyTree } from "@/components/pennyekart/AgentHierarchyTree";
 import { AgentProfileCard } from "@/components/pennyekart/AgentProfileCard";
 import { BulkAgentFormDialog } from "@/components/pennyekart/BulkAgentFormDialog";
 import { AgentDetailsPanel } from "@/components/pennyekart/AgentDetailsPanel";
+import { ExportFilterDialog } from "@/components/pennyekart/ExportFilterDialog";
 import { toast } from "sonner";
 import { exportAgentsToXlsx, exportAgentsToPdf } from "@/lib/exportAgents";
 
@@ -68,6 +69,7 @@ export default function PennyekartAgentHierarchy() {
   const [editingAgent, setEditingAgent] = useState<PennyekartAgent | null>(null);
   const [defaultParentId, setDefaultParentId] = useState<string | null>(null);
   const [defaultRole, setDefaultRole] = useState<AgentRole | null>(null);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const { agents, isLoading, error, refetch } = usePennyekartAgents(filters);
   const { deleteAgent } = useAgentMutations();
@@ -198,24 +200,16 @@ export default function PennyekartAgentHierarchy() {
             </p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex-1 sm:flex-none" disabled={agents.length === 0}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportAgentsToXlsx(agents, panchayaths)}>
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Export to Excel
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportAgentsToPdf(agents, panchayaths)}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export to PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none"
+              disabled={agents.length === 0}
+              onClick={() => setExportDialogOpen(true)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
             <Button onClick={handleAddAgent} size="sm" className="flex-1 sm:flex-none">
               <Plus className="h-4 w-4 mr-2" />
               Add Agent
@@ -415,6 +409,20 @@ export default function PennyekartAgentHierarchy() {
           defaultParentId={defaultParentId}
           defaultRole={defaultRole}
           onSuccess={refetch}
+        />
+
+        {/* Export Filter Dialog */}
+        <ExportFilterDialog
+          open={exportDialogOpen}
+          onOpenChange={setExportDialogOpen}
+          agents={agents}
+          onExport={(filteredAgents, format) => {
+            if (format === "xlsx") {
+              exportAgentsToXlsx(filteredAgents, panchayaths);
+            } else {
+              exportAgentsToPdf(filteredAgents, panchayaths);
+            }
+          }}
         />
       </div>
     </Layout>
