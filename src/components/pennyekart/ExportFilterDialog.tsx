@@ -16,14 +16,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { FileSpreadsheet, FileText, Users, ChevronRight } from "lucide-react";
+import { FileSpreadsheet, FileText, Users, ChevronRight, MessageCircle } from "lucide-react";
 import { PennyekartAgent, ROLE_LABELS, ROLE_HIERARCHY, AgentRole } from "@/hooks/usePennyekartAgents";
 
 interface ExportFilterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   agents: PennyekartAgent[];
-  onExport: (filteredAgents: PennyekartAgent[], format: "xlsx" | "pdf") => void;
+  onExport: (filteredAgents: PennyekartAgent[], format: "xlsx" | "pdf" | "whatsapp") => void;
 }
 
 /** Recursively collect all descendants of a given agent */
