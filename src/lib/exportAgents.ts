@@ -8,18 +8,26 @@ interface PanchayathInfo {
 
 function buildRows(agents: PennyekartAgent[], panchayaths: PanchayathInfo[]) {
   const panchayathMap = new Map(panchayaths.map(p => [p.id, p.name]));
+  const agentMap = new Map(agents.map(a => [a.id, a]));
 
-  return agents.map((agent, i) => ({
-    "#": i + 1,
-    Name: agent.name,
-    Mobile: agent.mobile,
-    Role: ROLE_LABELS[agent.role],
-    Panchayath: agent.panchayath?.name || panchayathMap.get(agent.panchayath_id) || "",
-    Ward: agent.ward,
-    "Customer Count": agent.role === "pro" ? agent.customer_count : "",
-    Status: agent.is_active ? "Active" : "Inactive",
-    "Created At": new Date(agent.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" }),
-  }));
+  return agents.map((agent, i) => {
+    const parent = agent.parent_agent_id ? agentMap.get(agent.parent_agent_id) : null;
+    const directReports = agents.filter(a => a.parent_agent_id === agent.id);
+
+    return {
+      "#": i + 1,
+      Name: agent.name,
+      Mobile: agent.mobile,
+      Role: ROLE_LABELS[agent.role],
+      "Reports To": parent ? `${parent.name} (${ROLE_LABELS[parent.role]})` : "",
+      "Direct Reports": directReports.length > 0 ? directReports.map(r => r.name).join(", ") : "",
+      Panchayath: agent.panchayath?.name || panchayathMap.get(agent.panchayath_id) || "",
+      Ward: agent.ward,
+      "Customer Count": agent.role === "pro" ? agent.customer_count : "",
+      Status: agent.is_active ? "Active" : "Inactive",
+      "Created At": new Date(agent.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" }),
+    };
+  });
 }
 
 export function exportAgentsToXlsx(agents: PennyekartAgent[], panchayaths: PanchayathInfo[]) {
@@ -32,6 +40,8 @@ export function exportAgentsToXlsx(agents: PennyekartAgent[], panchayaths: Panch
     { wch: 25 }, // Name
     { wch: 14 }, // Mobile
     { wch: 16 }, // Role
+    { wch: 30 }, // Reports To
+    { wch: 35 }, // Direct Reports
     { wch: 20 }, // Panchayath
     { wch: 8 },  // Ward
     { wch: 15 }, // Customer Count
@@ -82,12 +92,12 @@ export function exportAgentsToPdf(agents: PennyekartAgent[], panchayaths: Pancha
   <table>
     <thead>
       <tr>
-        <th>#</th><th>Name</th><th>Mobile</th><th>Role</th><th>Panchayath</th><th>Ward</th><th>Customers</th><th>Status</th><th>Created</th>
+        <th>#</th><th>Name</th><th>Mobile</th><th>Role</th><th>Reports To</th><th>Direct Reports</th><th>Panchayath</th><th>Ward</th><th>Customers</th><th>Status</th><th>Created</th>
       </tr>
     </thead>
     <tbody>
       ${rows.map(r => `<tr>
-        <td>${r["#"]}</td><td>${r.Name}</td><td>${r.Mobile}</td><td>${r.Role}</td><td>${r.Panchayath}</td><td>${r.Ward}</td><td>${r["Customer Count"]}</td><td>${r.Status}</td><td>${r["Created At"]}</td>
+        <td>${r["#"]}</td><td>${r.Name}</td><td>${r.Mobile}</td><td>${r.Role}</td><td>${r["Reports To"]}</td><td>${r["Direct Reports"]}</td><td>${r.Panchayath}</td><td>${r.Ward}</td><td>${r["Customer Count"]}</td><td>${r.Status}</td><td>${r["Created At"]}</td>
       </tr>`).join("")}
     </tbody>
   </table>
