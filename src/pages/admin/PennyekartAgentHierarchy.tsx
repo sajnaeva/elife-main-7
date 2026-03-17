@@ -419,6 +419,8 @@ export default function PennyekartAgentHierarchy() {
           onExport={(filteredAgents, format) => {
             if (format === "xlsx") {
               exportAgentsToXlsx(filteredAgents, panchayaths);
+            } else if (format === "whatsapp") {
+              shareAgentsViaWhatsApp(filteredAgents, panchayaths);
             } else {
               exportAgentsToPdf(filteredAgents, panchayaths);
             }
