@@ -92,12 +92,12 @@ export function exportAgentsToPdf(agents: PennyekartAgent[], panchayaths: Pancha
   <table>
     <thead>
       <tr>
-        <th>#</th><th>Name</th><th>Mobile</th><th>Role</th><th>Panchayath</th><th>Ward</th><th>Customers</th><th>Status</th><th>Created</th>
+        <th>#</th><th>Name</th><th>Mobile</th><th>Role</th><th>Reports To</th><th>Direct Reports</th><th>Panchayath</th><th>Ward</th><th>Customers</th><th>Status</th><th>Created</th>
       </tr>
     </thead>
     <tbody>
       ${rows.map(r => `<tr>
-        <td>${r["#"]}</td><td>${r.Name}</td><td>${r.Mobile}</td><td>${r.Role}</td><td>${r.Panchayath}</td><td>${r.Ward}</td><td>${r["Customer Count"]}</td><td>${r.Status}</td><td>${r["Created At"]}</td>
+        <td>${r["#"]}</td><td>${r.Name}</td><td>${r.Mobile}</td><td>${r.Role}</td><td>${r["Reports To"]}</td><td>${r["Direct Reports"]}</td><td>${r.Panchayath}</td><td>${r.Ward}</td><td>${r["Customer Count"]}</td><td>${r.Status}</td><td>${r["Created At"]}</td>
       </tr>`).join("")}
     </tbody>
   </table>
