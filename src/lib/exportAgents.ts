@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { PennyekartAgent, ROLE_LABELS } from "@/hooks/usePennyekartAgents";
+import { PennyekartAgent, ROLE_LABELS, AgentRole } from "@/hooks/usePennyekartAgents";
 
 interface PanchayathInfo {
   id: string;
